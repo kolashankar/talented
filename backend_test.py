@@ -228,14 +228,17 @@ class TalentDBackendTester:
         try:
             headers = {"Authorization": f"Bearer {self.admin_token}"}
             
+            # The endpoint expects prompt as a query parameter or form data
+            params = {"prompt": "Senior React Developer at fintech company"}
+            
             async with self.session.post(f"{BACKEND_URL}/ai/generate-job", 
-                                       json={"prompt": "Senior React Developer at fintech company"},
+                                       params=params,
                                        headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     content = data.get("content", {})
                     self.log_test("AI Generate Job", True, 
-                                f"Generated job: {content.get('title', 'N/A')}")
+                                f"Generated job: {content.get('title', 'N/A') if isinstance(content, dict) else 'Generated successfully'}")
                 else:
                     error_data = await response.text()
                     self.log_test("AI Generate Job", False, 
