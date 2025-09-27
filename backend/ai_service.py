@@ -31,7 +31,7 @@ class AIService:
             api_key=self.api_key,
             session_id=session_id,
             system_message=system_message
-        ).with_model("gemini", "gemini-2.0-flash")
+        ).with_model("gemini", "gemini-1.5-pro")
         
         return chat
     
