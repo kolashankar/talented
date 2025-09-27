@@ -9,7 +9,8 @@ const Header = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
           <div className="flex items-center space-x-6 text-white">
             <a href="#" className="hover:text-blue-200 transition-colors">Jobs Tracker</a>
-            <a href="#" className="hover:text-blue-200 transition-colors">Resume Review</a>
+            <a href="/resume-review" className="hover:text-blue-200 transition-colors">Resume Review</a>
+            <a href="/portfolio-builder" className="hover:text-blue-200 transition-colors">Portfolio Builder</a>
             <a href="#" className="hover:text-blue-200 transition-colors">Income Tax Calculator</a>
             <a href="#" className="hover:text-blue-200 transition-colors">DRDO Internships</a>
           </div>
