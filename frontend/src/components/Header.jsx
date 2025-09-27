@@ -34,27 +34,27 @@ const Header = () => {
             
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center space-x-6 text-white">
-              <a href="#" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
+              <a href="/jobs" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
                 <span>📋</span>
                 <span>Jobs</span>
               </a>
-              <a href="#" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
+              <a href="/jobs" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
                 <span>⭐</span>
                 <span>Fresher Jobs</span>
               </a>
-              <a href="#" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
+              <a href="/internships" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
                 <span>📚</span>
                 <span>Internships</span>
               </a>
-              <a href="#" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
+              <a href="/roadmaps" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
                 <span>🗺️</span>
                 <span>Roadmaps</span>
               </a>
-              <a href="#" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
+              <a href="/articles" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
                 <span>📖</span>
                 <span>Articles</span>
               </a>
-              <a href="#" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
+              <a href="/dsa-corner" className="hover:text-blue-200 transition-colors flex items-center space-x-1">
                 <span>⚡</span>
                 <span>DSA Corner</span>
               </a>
