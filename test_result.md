@@ -125,6 +125,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Admin login working with credentials kolashankar113@gmail.com / Shankar@113. Token generation and /auth/me endpoint functional."
+      - working: true
+        agent: "testing"
+        comment: "CONFIRMED: Admin authentication fully functional. Credentials kolashankar113@gmail.com / Shankar@113 work correctly (backend logs showing admin/admin123 were misleading). All admin endpoints (/auth/login, /auth/me, /admin/dashboard/stats, /admin/jobs, /admin/internships) working properly. Security correctly implemented - protected endpoints return 403 when no token provided."
 
   - task: "User Authentication Routes"
     implemented: true
