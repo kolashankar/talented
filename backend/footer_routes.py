@@ -15,6 +15,9 @@ async def get_page_by_slug(slug: str):
         if not page:
             raise HTTPException(status_code=404, detail="Page not found")
         
+        # Convert ObjectId to string
+        page = convert_objectid_to_str(page)
+        
         return {"page": page}
         
     except Exception as e:
