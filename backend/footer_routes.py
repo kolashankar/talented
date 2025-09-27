@@ -20,6 +20,12 @@ async def get_page_by_slug(slug: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch page: {str(e)}")
 
+def convert_objectid_to_str(doc):
+    """Convert MongoDB ObjectId to string for JSON serialization"""
+    if doc and "_id" in doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
+
 @footer_router.get("/")
 async def get_all_pages():
     """Get all published footer pages"""
@@ -27,6 +33,9 @@ async def get_all_pages():
         db = await get_database()
         
         pages = await db.footer_pages.find({"is_published": True}).sort("title", 1).to_list(100)
+        
+        # Convert ObjectIds to strings
+        pages = [convert_objectid_to_str(page) for page in pages]
         
         return {"pages": pages}
         
