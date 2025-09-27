@@ -73,13 +73,13 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
     try:
         token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        email: str = payload.get("sub")
+        if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
     
-    admin = await get_admin_by_username_or_email(username=username)
+    admin = await get_admin_by_username_or_email(username_or_email=email)
     if admin is None:
         raise credentials_exception
     
