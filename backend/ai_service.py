@@ -31,7 +31,7 @@ class AIService:
             api_key=self.api_key,
             session_id=session_id,
             system_message=system_message
-        ).with_model("openai", "gpt-3.5-turbo")
+        ).with_model("openai", "gpt-4o-mini")
         
         return chat
     
