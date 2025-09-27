@@ -179,6 +179,12 @@ async def apply_to_position(
         raise HTTPException(status_code=500, detail=f"Failed to apply: {str(e)}")
 
 # Get user's saved items
+def convert_objectid_to_str(doc):
+    """Convert MongoDB ObjectId to string for JSON serialization"""
+    if doc and "_id" in doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
+
 @interaction_router.get("/saved")
 async def get_saved_items(
     content_type: Optional[str] = None,
@@ -197,6 +203,9 @@ async def get_saved_items(
             filter_criteria["content_type"] = content_type
         
         saved_items = await db.user_interactions.find(filter_criteria).sort("created_at", -1).to_list(100)
+        
+        # Convert ObjectIds to strings
+        saved_items = [convert_objectid_to_str(item) for item in saved_items]
         
         return {"saved_items": saved_items}
         
