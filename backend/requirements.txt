@@ -27,3 +27,4 @@ emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/sim
 bcrypt>=4.0.1
 PyPDF2>=3.0.1
 python-docx>=1.1.0
+litellm>=1.77.4
