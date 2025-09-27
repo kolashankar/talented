@@ -29,7 +29,7 @@ async def login(admin_login: AdminLogin):
         
         access_token_expires = timedelta(minutes=1440)  # 24 hours
         access_token = create_access_token(
-            data={"sub": admin.username}, expires_delta=access_token_expires
+            data={"sub": admin.email}, expires_delta=access_token_expires
         )
         
         # Update last login
