@@ -23,6 +23,7 @@ import Internships from "./components/Internships";
 import Articles from "./components/Articles";
 import Roadmaps from "./components/Roadmaps";
 import DSACorner from "./components/DSACorner";
+import DSAProblemDetail from "./components/DSAProblemDetail";
 import UserLogin from "./components/UserLogin";
 import UserRegister from "./components/UserRegister";
 
