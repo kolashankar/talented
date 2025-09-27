@@ -33,10 +33,11 @@ async def login(admin_login: AdminLogin):
         )
         
         # Update last login
+        from datetime import datetime
         db = await get_database()
         await db.admin_users.update_one(
             {"username": admin.username},
-            {"$set": {"last_login": admin_login.datetime.utcnow()}}
+            {"$set": {"last_login": datetime.utcnow()}}
         )
         
         return {
