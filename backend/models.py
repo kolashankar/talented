@@ -241,3 +241,203 @@ class DashboardStats(BaseModel):
     total_applications: int
     recent_activity: List[Dict[str, Any]]
     popular_content: List[Dict[str, Any]]
+
+# User Models (for user authentication and features)
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    google_id: Optional[str] = None
+    name: str
+    profile_picture: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_login: Optional[datetime] = None
+
+class UserCreate(BaseModel):
+    email: str
+    google_id: Optional[str] = None
+    name: str
+    profile_picture: Optional[str] = None
+
+# DSA Problem Models
+class DSADifficulty(str, Enum):
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+
+class DSACategory(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    icon: Optional[str] = None
+    order: int
+
+class DSATopic(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category_id: str
+    order: int
+
+class DSAChapter(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    topic_id: str
+    order: int
+
+class DSATestCase(BaseModel):
+    input: str
+    expected_output: str
+    explanation: Optional[str] = None
+
+class DSAProblemCreate(BaseModel):
+    title: str
+    slug: str
+    description: str
+    difficulty: DSADifficulty
+    category_id: str
+    topic_id: str
+    chapter_id: str
+    companies: List[str] = []
+    tags: List[str] = []
+    constraints: List[str] = []
+    examples: List[Dict[str, str]] = []
+    test_cases: List[DSATestCase] = []
+    hints: List[str] = []
+    solution_approach: Optional[str] = None
+    time_complexity: Optional[str] = None
+    space_complexity: Optional[str] = None
+
+class DSAProblem(BaseDocument, DSAProblemCreate):
+    attempts: int = 0
+    solved_count: int = 0
+    success_rate: float = 0.0
+
+class DSAProblemUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    difficulty: Optional[DSADifficulty] = None
+    category_id: Optional[str] = None
+    topic_id: Optional[str] = None
+    chapter_id: Optional[str] = None
+    companies: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    constraints: Optional[List[str]] = None
+    examples: Optional[List[Dict[str, str]]] = None
+    test_cases: Optional[List[DSATestCase]] = None
+    hints: Optional[List[str]] = None
+    solution_approach: Optional[str] = None
+    time_complexity: Optional[str] = None
+    space_complexity: Optional[str] = None
+    status: Optional[ContentStatus] = None
+
+class DSASubmission(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    problem_id: str
+    user_id: str
+    code: str
+    language: str
+    status: str  # accepted, wrong_answer, time_limit_exceeded, etc.
+    execution_time: Optional[float] = None
+    memory_used: Optional[int] = None
+    test_cases_passed: int = 0
+    total_test_cases: int = 0
+    submitted_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Portfolio Builder Models
+class PortfolioTemplate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    preview_image: str
+    template_data: Dict[str, Any]  # Template structure and styling
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class PersonalDetails(BaseModel):
+    full_name: str
+    email: str
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    linkedin: Optional[str] = None
+    github: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    bio: Optional[str] = None
+    profile_image: Optional[str] = None
+
+class Education(BaseModel):
+    degree: str
+    institution: str
+    year: Optional[str] = None
+    cgpa: Optional[str] = None
+    description: Optional[str] = None
+
+class Experience(BaseModel):
+    title: str
+    company: str
+    duration: str
+    location: Optional[str] = None
+    description: List[str] = []
+
+class Project(BaseModel):
+    name: str
+    description: str
+    technologies: List[str] = []
+    github_url: Optional[str] = None
+    live_url: Optional[str] = None
+    image: Optional[str] = None
+
+class ParsedResumeData(BaseModel):
+    personal_details: PersonalDetails
+    education: List[Education] = []
+    experience: List[Experience] = []
+    projects: List[Project] = []
+    skills: List[str] = []
+    certifications: List[str] = []
+    achievements: List[str] = []
+
+class PortfolioCreate(BaseModel):
+    user_id: str
+    template_id: str
+    title: str
+    resume_data: ParsedResumeData
+    custom_prompt: Optional[str] = None
+    additional_sections: Dict[str, Any] = {}
+
+class Portfolio(BaseDocument, PortfolioCreate):
+    live_url: str
+    share_token: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    is_public: bool = True
+    views: int = 0
+
+class PortfolioUpdate(BaseModel):
+    title: Optional[str] = None
+    template_id: Optional[str] = None
+    resume_data: Optional[ParsedResumeData] = None
+    custom_prompt: Optional[str] = None
+    additional_sections: Optional[Dict[str, Any]] = None
+    is_public: Optional[bool] = None
+
+# Enhanced AI Models for Portfolio and Resume
+class ResumeParseRequest(BaseModel):
+    resume_text: str
+
+class ResumeParseResponse(BaseModel):
+    parsed_data: ParsedResumeData
+    parsing_confidence: float
+    suggestions: List[str] = []
+    missing_sections: List[str] = []
+
+class PortfolioGenerateRequest(BaseModel):
+    template_id: str
+    resume_data: ParsedResumeData
+    user_prompt: str
+    additional_preferences: Dict[str, Any] = {}
+
+class PortfolioGenerateResponse(BaseModel):
+    generated_content: Dict[str, Any]
+    html_content: str
+    css_content: str
+    live_url: str
+    share_token: str
