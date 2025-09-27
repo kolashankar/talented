@@ -56,6 +56,10 @@ api_router.include_router(public_ai_router)  # /api/public-ai/*
 api_router.include_router(resume_router)  # /api/resume/*
 api_router.include_router(portfolio_router)  # /api/portfolio/*
 api_router.include_router(public_router)  # /api/public/*
+api_router.include_router(interaction_router)  # /api/interactions/*
+api_router.include_router(dsa_router)  # /api/dsa/*
+api_router.include_router(company_router)  # /api/companies/*
+api_router.include_router(footer_router)  # /api/pages/*
 
 # Include the main router in the app
 app.include_router(api_router)
