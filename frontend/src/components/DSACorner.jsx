@@ -241,7 +241,11 @@ const DSACorner = () => {
                           <span>Topic: {problem.topic}</span>
                           <span>Companies: {problem.companies.slice(0, 2).join(', ')}</span>
                         </div>
-                        <Button size="sm" variant={problem.solved ? "outline" : "default"}>
+                        <Button 
+                          size="sm" 
+                          variant={problem.solved ? "outline" : "default"}
+                          onClick={() => handleProblemAction(problem)}
+                        >
                           {problem.solved ? 'Review' : 'Solve'}
                         </Button>
                       </div>
