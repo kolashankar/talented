@@ -16,6 +16,10 @@ from user_auth_routes import user_auth_router
 from resume_routes import resume_router
 from portfolio_routes import portfolio_router
 from public_routes import public_router
+from user_interaction_routes import interaction_router
+from dsa_routes import dsa_router
+from company_routes import company_router
+from footer_routes import footer_router
 
 # Import auth functions
 from auth import create_default_admin
