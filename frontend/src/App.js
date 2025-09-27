@@ -40,6 +40,7 @@ function App() {
             <Route path="/articles" element={<Articles />} />
             <Route path="/roadmaps" element={<Roadmaps />} />
             <Route path="/dsa-corner" element={<DSACorner />} />
+            <Route path="/dsa-corner/problem/:problemId" element={<DSAProblemDetail />} />
             <Route path="/login" element={<UserLogin />} />
             <Route path="/register" element={<UserRegister />} />
             <Route path="/resume-review" element={<ResumeReviewer />} />
