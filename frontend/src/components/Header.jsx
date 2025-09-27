@@ -25,12 +25,12 @@ const Header = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-8">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
+            <a href="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
                 <span className="text-blue-900 font-bold text-lg">✱</span>
               </div>
               <span className="text-white text-xl font-bold">Talentd</span>
-            </div>
+            </a>
             
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center space-x-6 text-white">
