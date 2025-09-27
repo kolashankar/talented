@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import Header from './Header';
 
 const DSACorner = () => {
+  const navigate = useNavigate();
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
 
