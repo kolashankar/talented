@@ -12,6 +12,9 @@ from database import connect_to_mongo, close_mongo_connection
 from admin_routes import admin_router
 from ai_routes import ai_router, public_ai_router
 from auth_routes import auth_router
+from user_auth_routes import user_auth_router
+from resume_routes import resume_router
+from portfolio_routes import portfolio_router
 from public_routes import public_router
 
 # Import auth functions
