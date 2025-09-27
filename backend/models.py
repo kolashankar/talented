@@ -441,3 +441,79 @@ class PortfolioGenerateResponse(BaseModel):
     css_content: str
     live_url: str
     share_token: str
+
+# User Interaction Models
+class UserInteraction(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    content_type: str  # 'article', 'job', 'internship', 'roadmap', 'dsa_problem'
+    content_id: str
+    interaction_type: str  # 'like', 'save', 'share', 'view', 'apply'
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = {}  # Additional data like share platform, etc.
+
+class DSAUserProgress(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    problem_id: str
+    status: str  # 'not_attempted', 'in_progress', 'solved', 'reviewed'
+    attempts: int = 0
+    best_solution: Optional[str] = None
+    best_language: Optional[str] = None
+    time_spent: int = 0  # in minutes
+    last_attempted: datetime = Field(default_factory=datetime.utcnow)
+    solved_at: Optional[datetime] = None
+    
+class DSADiscussion(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    problem_id: str
+    user_id: str
+    user_name: str
+    content: str
+    is_solution: bool = False
+    parent_id: Optional[str] = None  # For replies
+    likes: int = 0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CompanyProfile(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    logo_url: Optional[str] = None
+    description: str
+    website: Optional[str] = None
+    industry: str
+    size: Optional[str] = None  # '1-10', '11-50', '51-200', etc.
+    location: str
+    founded_year: Optional[int] = None
+    social_links: Dict[str, str] = {}  # linkedin, twitter, etc.
+    job_count: int = 0
+    internship_count: int = 0
+    rating: float = 0.0
+    review_count: int = 0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Footer Page Models
+class FooterPage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    slug: str
+    content: str
+    meta_description: Optional[str] = None
+    is_published: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Response Models for User Interactions
+class LikeResponse(BaseModel):
+    liked: bool
+    total_likes: int
+
+class SaveResponse(BaseModel):
+    saved: bool
+    message: str
+
+class ShareResponse(BaseModel):
+    share_url: str
+    message: str
