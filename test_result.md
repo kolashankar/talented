@@ -162,11 +162,14 @@ backend:
     file: "backend/portfolio_routes.py"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "Portfolio templates endpoint working (returns 5 templates). Portfolio generation failing due to AI service JSON parsing issues. User portfolio listing functional."
+      - working: false
+        agent: "testing"
+        comment: "Portfolio templates (/api/portfolio/templates) and user portfolios listing (/api/portfolio/my-portfolios) working correctly. Only portfolio generation (/api/portfolio/generate) failing due to AI service JSON parsing issue - same root cause as other AI-dependent features."
 
   - task: "AI Service Integration"
     implemented: true
