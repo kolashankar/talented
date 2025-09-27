@@ -268,8 +268,6 @@ metadata:
 test_plan:
   current_focus:
     - "AI Service Integration"
-    - "Resume Processing Endpoints"
-    - "Portfolio Builder Endpoints"
   stuck_tasks:
     - "AI Service Integration"
   test_all: false
