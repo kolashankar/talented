@@ -109,6 +109,11 @@ const DSACorner = () => {
     }
   };
 
+  const handleProblemAction = (problem) => {
+    // Navigate to the detailed problem page
+    navigate(`/dsa-corner/problem/${problem.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
