@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 
 # Test configuration
-BACKEND_URL = "https://admin-dashboard-fix-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://routefix-admin.preview.emergentagent.com/api"
 ADMIN_EMAIL = "kolashankar113@gmail.com"
 ADMIN_PASSWORD = "Shankar@113"
 

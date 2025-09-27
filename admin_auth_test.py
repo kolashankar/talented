@@ -7,7 +7,7 @@ import asyncio
 import aiohttp
 import json
 
-BACKEND_URL = "https://admin-dashboard-fix-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://routefix-admin.preview.emergentagent.com/api"
 
 async def test_admin_credentials():
     """Test different admin credential combinations"""
