@@ -147,11 +147,14 @@ backend:
     file: "backend/resume_routes.py"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "Resume upload and parsing endpoints exist but failing due to AI service JSON parsing errors. LLM integration working but response parsing broken."
+      - working: false
+        agent: "testing"
+        comment: "Resume parsing endpoint (/api/resume/parse) working correctly with user authentication. Resume upload endpoint properly secured (returns 403 without auth). Only portfolio generation still failing due to AI service JSON parsing issue."
 
   - task: "Portfolio Builder Endpoints"
     implemented: true
