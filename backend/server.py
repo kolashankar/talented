@@ -45,9 +45,12 @@ async def health_check():
 
 # Include all route modules
 api_router.include_router(auth_router)  # /api/auth/*
+api_router.include_router(user_auth_router)  # /api/user-auth/*
 api_router.include_router(admin_router)  # /api/admin/*
 api_router.include_router(ai_router)     # /api/ai/*
 api_router.include_router(public_ai_router)  # /api/public-ai/*
+api_router.include_router(resume_router)  # /api/resume/*
+api_router.include_router(portfolio_router)  # /api/portfolio/*
 api_router.include_router(public_router)  # /api/public/*
 
 # Include the main router in the app
