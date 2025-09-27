@@ -43,6 +43,98 @@ const Articles = () => {
     }
   };
 
+  const fetchInteractionStatus = async () => {
+    if (!user) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const interactionData = {};
+      
+      for (const article of articles) {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/interactions/article/${article.id}/status`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          interactionData[article.id] = data;
+        }
+      }
+      
+      setInteractions(interactionData);
+    } catch (error) {
+      console.error('Error fetching interaction status:', error);
+    }
+  };
+
+  const handleInteraction = async (articleId, interactionType) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/interactions/article/${articleId}/${interactionType}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update local interaction state
+        setInteractions(prev => ({
+          ...prev,
+          [articleId]: {
+            ...prev[articleId],
+            [interactionType === 'like' ? 'liked' : 'saved']: interactionType === 'like' ? data.liked : data.saved,
+            ...(interactionType === 'like' && { total_likes: data.total_likes })
+          }
+        }));
+
+        if (interactionType === 'save') {
+          alert(data.message);
+        }
+      }
+    } catch (error) {
+      console.error(`Error ${interactionType}:`, error);
+    }
+  };
+
+  const handleShare = async (articleId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/interactions/article/${articleId}/share`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(data.share_url);
+        alert('Article link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  const handleReadMore = (article) => {
+    navigate(`/articles/${article.id}`);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
   };
