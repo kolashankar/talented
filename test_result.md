@@ -169,3 +169,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Starting comprehensive talent platform development. Phase 2 implementation: User app features (Resume Reviewer, Portfolio Builder) with role-based authentication and comprehensive environment setup."
+  - agent: "testing"
+    message: "Backend testing completed. Found critical AI service integration issues - LLM responses are not being parsed as JSON correctly. Admin authentication working, user authentication working, but AI-dependent features (resume parsing, portfolio generation, content generation) are failing due to JSON parsing errors in ai_service.py. Basic endpoints and authentication are functional."
