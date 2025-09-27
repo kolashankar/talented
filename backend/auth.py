@@ -40,17 +40,22 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_admin_by_username(username: str) -> Optional[AdminUser]:
-    """Get admin user by username"""
+async def get_admin_by_username_or_email(username_or_email: str) -> Optional[AdminUser]:
+    """Get admin user by username or email"""
     db = await get_database()
-    admin_data = await db.admin_users.find_one({"username": username})
+    admin_data = await db.admin_users.find_one({
+        "$or": [
+            {"username": username_or_email},
+            {"email": username_or_email}
+        ]
+    })
     if admin_data:
         return AdminUser(**admin_data)
     return None
 
-async def authenticate_admin(username: str, password: str) -> Optional[AdminUser]:
-    """Authenticate admin user"""
-    admin = await get_admin_by_username(username)
+async def authenticate_admin(username_or_email: str, password: str) -> Optional[AdminUser]:
+    """Authenticate admin user by username or email"""
+    admin = await get_admin_by_username_or_email(username_or_email)
     if not admin:
         return None
     if not verify_password(password, admin.hashed_password):
