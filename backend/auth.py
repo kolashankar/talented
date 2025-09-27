@@ -79,7 +79,7 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
     except JWTError:
         raise credentials_exception
     
-    admin = await get_admin_by_username(username=username)
+    admin = await get_admin_by_username_or_email(username=username)
     if admin is None:
         raise credentials_exception
     
