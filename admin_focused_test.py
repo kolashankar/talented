@@ -8,7 +8,7 @@ import asyncio
 import aiohttp
 import json
 
-BACKEND_URL = "https://routefix-admin.preview.emergentagent.com/api"
+BACKEND_URL = "https://dsa-feature-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "kolashankar113@gmail.com"
 ADMIN_PASSWORD = "Shankar@113"
 
