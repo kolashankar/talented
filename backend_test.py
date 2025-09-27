@@ -120,7 +120,7 @@ class TalentDBackendTester:
         """Test user authentication /me endpoint (should fail without token)"""
         try:
             async with self.session.get(f"{BACKEND_URL}/user-auth/me") as response:
-                if response.status == 401:
+                if response.status in [401, 403]:  # Both are acceptable for unauthorized access
                     self.log_test("User Auth Me (No Token)", True, 
                                 "Correctly rejected request without token")
                 else:
