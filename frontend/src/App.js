@@ -34,6 +34,13 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/internships" element={<Internships />} />
+            <Route path="/articles" element={<Articles />} />
+            <Route path="/roadmaps" element={<Roadmaps />} />
+            <Route path="/dsa-corner" element={<DSACorner />} />
+            <Route path="/login" element={<UserLogin />} />
+            <Route path="/register" element={<UserRegister />} />
             <Route path="/resume-review" element={<ResumeReviewer />} />
             <Route path="/portfolio-builder" element={<PortfolioBuilder />} />
             
