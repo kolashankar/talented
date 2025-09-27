@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { Loader2 } from "lucide-react";
 
 const AdminLogin = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { adminLogin, isAdminAuthenticated } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
