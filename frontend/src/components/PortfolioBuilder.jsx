@@ -161,19 +161,19 @@ const PortfolioBuilder = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4">
         <div className="max-w-md mx-auto">
           <Card>
-            <CardHeader className="text-center\">
-              <Globe className="w-12 h-12 text-purple-600 mx-auto mb-4\" />
-              <CardTitle className="text-2xl\">Portfolio Builder</CardTitle>
-              <p className="text-gray-600\">Create stunning portfolio websites instantly</p>
+            <CardHeader className="text-center">
+              <Globe className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+              <CardTitle className="text-2xl">Portfolio Builder</CardTitle>
+              <p className="text-gray-600">Create stunning portfolio websites instantly</p>
             </CardHeader>
-            <CardContent className="text-center\">
-              <Alert className="mb-4\">
-                <AlertCircle className="w-4 h-4\" />
+            <CardContent className="text-center">
+              <Alert className="mb-4">
+                <AlertCircle className="w-4 h-4" />
                 <AlertDescription>
                   Please sign in to access the Portfolio Builder feature
                 </AlertDescription>
               </Alert>
-              <Button onClick={login} className="w-full\">
+              <Button onClick={login} className="w-full">
                 Sign in with Google
               </Button>
             </CardContent>
@@ -184,45 +184,45 @@ const PortfolioBuilder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4\">
-      <div className="max-w-7xl mx-auto\">
-        <div className="text-center mb-8\">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4\">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
             AI Portfolio Builder
           </h1>
-          <p className="text-xl text-gray-600\">
+          <p className="text-xl text-gray-600">
             Transform your resume into a stunning portfolio website in minutes
           </p>
         </div>
 
-        <div className="mb-8\">
-          <div className="flex justify-center space-x-4\">
+        <div className="mb-8">
+          <div className="flex justify-center space-x-4">
             <Button
               variant={activeTab === 'create' ? 'default' : 'outline'}
               onClick={() => setActiveTab('create')}
-              className="flex items-center gap-2\"
+              className="flex items-center gap-2"
             >
-              <Zap className="w-4 h-4\" />
+              <Zap className="w-4 h-4" />
               Create New
             </Button>
             <Button
               variant={activeTab === 'my-portfolios' ? 'default' : 'outline'}
               onClick={() => setActiveTab('my-portfolios')}
-              className="flex items-center gap-2\"
+              className="flex items-center gap-2"
             >
-              <Globe className="w-4 h-4\" />
+              <Globe className="w-4 h-4" />
               My Portfolios
             </Button>
           </div>
         </div>
 
         {activeTab === 'create' && (
-          <div className="max-w-4xl mx-auto\">
+          <div className="max-w-4xl mx-auto">
             {/* Progress Steps */}
-            <div className="mb-8\">
-              <div className="flex items-center justify-center space-x-4\">
+            <div className="mb-8">
+              <div className="flex items-center justify-center space-x-4">
                 {[1, 2, 3, 4].map((num) => (
-                  <div key={num} className="flex items-center\">
+                  <div key={num} className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                       step >= num ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
@@ -234,8 +234,8 @@ const PortfolioBuilder = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-center mt-2\">
-                <div className="text-sm text-gray-600\">
+              <div className="flex justify-center mt-2">
+                <div className="text-sm text-gray-600">
                   {step === 1 && 'Choose Template'}
                   {step === 2 && 'Upload Resume'}
                   {step === 3 && 'Customize'}
@@ -248,13 +248,13 @@ const PortfolioBuilder = () => {
             {step === 1 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2\">
-                    <Palette className="w-5 h-5\" />
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="w-5 h-5" />
                     Choose Your Template
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6\">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {templates.map((template) => (
                       <div
                         key={template.id}
@@ -265,20 +265,20 @@ const PortfolioBuilder = () => {
                         }`}
                         onClick={() => setSelectedTemplate(template)}
                       >
-                        <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center\">
-                          <Globe className="w-8 h-8 text-gray-400\" />
+                        <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+                          <Globe className="w-8 h-8 text-gray-400" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-1\">{template.name}</h3>
-                        <p className="text-sm text-gray-600\">{template.description}</p>
+                        <h3 className="font-semibold text-lg mb-1">{template.name}</h3>
+                        <p className="text-sm text-gray-600">{template.description}</p>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="flex justify-center mt-6\">
+                  <div className="flex justify-center mt-6">
                     <Button
                       onClick={() => setStep(2)}
                       disabled={!selectedTemplate}
-                      className="px-8\"
+                      className="px-8"
                     >
                       Continue
                     </Button>
@@ -291,43 +291,43 @@ const PortfolioBuilder = () => {
             {step === 2 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2\">
-                    <Upload className="w-5 h-5\" />
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="w-5 h-5" />
                     Upload Your Resume
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6\">
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="font-medium mb-3\">Upload File</h3>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center\">
+                      <h3 className="font-medium mb-3">Upload File</h3>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                         <input
-                          type=\"file\"
-                          accept=\".pdf,.doc,.docx,.txt\"
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
                           onChange={(e) => setResumeFile(e.target.files[0])}
-                          className="hidden\"
-                          id=\"resume-upload\"
+                          className="hidden"
+                          id="resume-upload"
                         />
-                        <label htmlFor=\"resume-upload\" className="cursor-pointer\">
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2\" />
-                          <p className="text-gray-600\">Click to upload</p>
-                          <p className="text-xs text-gray-400\">PDF, DOC, DOCX, TXT</p>
+                        <label htmlFor="resume-upload" className="cursor-pointer">
+                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-600">Click to upload</p>
+                          <p className="text-xs text-gray-400">PDF, DOC, DOCX, TXT</p>
                         </label>
                       </div>
                       {resumeFile && (
-                        <div className="mt-3 p-3 bg-green-50 rounded-lg\">
-                          <div className="flex items-center gap-2\">
-                            <FileText className="w-4 h-4 text-green-600\" />
-                            <span className="text-sm text-green-800\">{resumeFile.name}</span>
+                        <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-800">{resumeFile.name}</span>
                           </div>
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <h3 className="font-medium mb-3\">Or Paste Text</h3>
+                      <h3 className="font-medium mb-3">Or Paste Text</h3>
                       <Textarea
-                        placeholder=\"Paste your resume text here...\"
+                        placeholder="Paste your resume text here..."
                         value={resumeText}
                         onChange={(e) => setResumeText(e.target.value)}
                         rows={8}
@@ -335,8 +335,8 @@ const PortfolioBuilder = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-center gap-4 mt-6\">
-                    <Button variant=\"outline\" onClick={() => setStep(1)}>
+                  <div className="flex justify-center gap-4 mt-6">
+                    <Button variant="outline" onClick={() => setStep(1)}>
                       Back
                     </Button>
                     <Button
@@ -352,19 +352,19 @@ const PortfolioBuilder = () => {
 
             {/* Step 3: Customization */}
             {step === 3 && parsedData && (
-              <div className="space-y-6\">
+              <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2\">
-                      <User className="w-5 h-5\" />
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="w-5 h-5" />
                       Parsed Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6\">
+                    <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-medium mb-3\">Personal Details</h4>
-                        <div className="space-y-2 text-sm\">
+                        <h4 className="font-medium mb-3">Personal Details</h4>
+                        <div className="space-y-2 text-sm">
                           <p><strong>Name:</strong> {parsedData.personal_details.full_name}</p>
                           <p><strong>Email:</strong> {parsedData.personal_details.email}</p>
                           {parsedData.personal_details.phone && (
@@ -377,8 +377,8 @@ const PortfolioBuilder = () => {
                       </div>
                       
                       <div>
-                        <h4 className="font-medium mb-3\">Summary</h4>
-                        <div className="space-y-1 text-sm\">
+                        <h4 className="font-medium mb-3">Summary</h4>
+                        <div className="space-y-1 text-sm">
                           <p><strong>Experience:</strong> {parsedData.experience.length} positions</p>
                           <p><strong>Projects:</strong> {parsedData.projects.length} projects</p>
                           <p><strong>Skills:</strong> {parsedData.skills.length} skills</p>
@@ -395,14 +395,14 @@ const PortfolioBuilder = () => {
                   </CardHeader>
                   <CardContent>
                     <Textarea
-                      placeholder=\"Describe any specific requirements for your portfolio (e.g., 'Make it suitable for software engineering roles', 'Emphasize my design projects', etc.)\"
+                      placeholder="Describe any specific requirements for your portfolio (e.g., 'Make it suitable for software engineering roles', 'Emphasize my design projects', etc.)"
                       value={userPrompt}
                       onChange={(e) => setUserPrompt(e.target.value)}
                       rows={4}
                     />
                     
-                    <div className="flex justify-center gap-4 mt-6\">
-                      <Button variant=\"outline\" onClick={() => setStep(2)}>
+                    <div className="flex justify-center gap-4 mt-6">
+                      <Button variant="outline" onClick={() => setStep(2)}>
                         Back
                       </Button>
                       <Button
@@ -421,56 +421,56 @@ const PortfolioBuilder = () => {
             {step === 4 && generatedPortfolio && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2\">
-                    <CheckCircle className="w-5 h-5 text-green-600\" />
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                     Portfolio Generated Successfully!
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center space-y-4\">
-                    <div className="p-6 bg-green-50 rounded-lg\">
-                      <Globe className="w-12 h-12 text-green-600 mx-auto mb-4\" />
-                      <p className="text-lg font-medium text-green-800 mb-2\">
+                  <div className="text-center space-y-4">
+                    <div className="p-6 bg-green-50 rounded-lg">
+                      <Globe className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                      <p className="text-lg font-medium text-green-800 mb-2">
                         Your portfolio is ready!
                       </p>
-                      <p className="text-sm text-green-600\">
+                      <p className="text-sm text-green-600">
                         Share your portfolio with potential employers
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-4\">
+                    <div className="flex flex-wrap justify-center gap-4">
                       <Button
                         onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}${generatedPortfolio.live_url}`, '_blank')}
-                        className="flex items-center gap-2\"
+                        className="flex items-center gap-2"
                       >
-                        <Eye className="w-4 h-4\" />
+                        <Eye className="w-4 h-4" />
                         Preview Portfolio
                       </Button>
                       
                       <Button
-                        variant=\"outline\"
+                        variant="outline"
                         onClick={() => {
                           navigator.clipboard.writeText(`${process.env.REACT_APP_BACKEND_URL}${generatedPortfolio.live_url}`);
                           // You could add a toast notification here
                         }}
-                        className="flex items-center gap-2\"
+                        className="flex items-center gap-2"
                       >
-                        <Share className="w-4 h-4\" />
+                        <Share className="w-4 h-4" />
                         Copy Link
                       </Button>
                       
                       <Button
-                        variant=\"outline\"
+                        variant="outline"
                         onClick={resetBuilder}
-                        className="flex items-center gap-2\"
+                        className="flex items-center gap-2"
                       >
-                        <Zap className="w-4 h-4\" />
+                        <Zap className="w-4 h-4" />
                         Create Another
                       </Button>
                     </div>
 
-                    <div className="text-left mt-6 p-4 bg-blue-50 rounded-lg\">
-                      <p className="text-sm text-blue-800\">
+                    <div className="text-left mt-6 p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-800">
                         <strong>Share URL:</strong> {process.env.REACT_APP_BACKEND_URL}{generatedPortfolio.live_url}
                       </p>
                     </div>
@@ -482,48 +482,48 @@ const PortfolioBuilder = () => {
         )}
 
         {activeTab === 'my-portfolios' && (
-          <div className="max-w-4xl mx-auto\">
+          <div className="max-w-4xl mx-auto">
             <Card>
               <CardHeader>
                 <CardTitle>My Portfolios</CardTitle>
               </CardHeader>
               <CardContent>
                 {myPortfolios.length === 0 ? (
-                  <div className="text-center py-8\">
-                    <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4\" />
-                    <p className="text-gray-600 mb-4\">You haven't created any portfolios yet</p>
+                  <div className="text-center py-8">
+                    <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">You haven't created any portfolios yet</p>
                     <Button onClick={() => setActiveTab('create')}>
                       Create Your First Portfolio
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-4\">
+                  <div className="grid md:grid-cols-2 gap-4">
                     {myPortfolios.map((portfolio) => (
-                      <div key={portfolio.id} className="border border-gray-200 rounded-lg p-4\">
-                        <h3 className="font-semibold text-lg mb-2\">{portfolio.title}</h3>
-                        <p className="text-sm text-gray-600 mb-3\">
+                      <div key={portfolio.id} className="border border-gray-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-lg mb-2">{portfolio.title}</h3>
+                        <p className="text-sm text-gray-600 mb-3">
                           Created: {new Date(portfolio.created_at).toLocaleDateString()}
                         </p>
-                        <p className="text-sm text-gray-600 mb-4\">
+                        <p className="text-sm text-gray-600 mb-4">
                           Views: {portfolio.views}
                         </p>
                         
-                        <div className="flex gap-2\">
+                        <div className="flex gap-2">
                           <Button
-                            size=\"sm\"
+                            size="sm"
                             onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}${portfolio.live_url}`, '_blank')}
                           >
-                            <Eye className="w-4 h-4 mr-1\" />
+                            <Eye className="w-4 h-4 mr-1" />
                             View
                           </Button>
                           <Button
-                            size=\"sm\"
-                            variant=\"outline\"
+                            size="sm"
+                            variant="outline"
                             onClick={() => {
                               navigator.clipboard.writeText(`${process.env.REACT_APP_BACKEND_URL}${portfolio.live_url}`);
                             }}
                           >
-                            <Share className="w-4 h-4 mr-1\" />
+                            <Share className="w-4 h-4 mr-1" />
                             Share
                           </Button>
                         </div>
@@ -537,9 +537,9 @@ const PortfolioBuilder = () => {
         )}
 
         {error && (
-          <Alert className="mt-4 max-w-4xl mx-auto border-red-200 bg-red-50\">
-            <AlertCircle className="w-4 h-4 text-red-600\" />
-            <AlertDescription className="text-red-800\">{error}</AlertDescription>
+          <Alert className="mt-4 max-w-4xl mx-auto border-red-200 bg-red-50">
+            <AlertCircle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
           </Alert>
         )}
       </div>

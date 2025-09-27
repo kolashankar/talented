@@ -107,21 +107,21 @@ const ResumeReviewer = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-        <div className="max-w-md mx-auto\">
+        <div className="max-w-md mx-auto">
           <Card>
-            <CardHeader className="text-center\">
-              <Brain className="w-12 h-12 text-blue-600 mx-auto mb-4\" />
-              <CardTitle className="text-2xl\">Resume Reviewer</CardTitle>
-              <p className="text-gray-600\">Get AI-powered feedback on your resume</p>
+            <CardHeader className="text-center">
+              <Brain className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+              <CardTitle className="text-2xl">Resume Reviewer</CardTitle>
+              <p className="text-gray-600">Get AI-powered feedback on your resume</p>
             </CardHeader>
-            <CardContent className="text-center\">
-              <Alert className="mb-4\">
-                <AlertCircle className="w-4 h-4\" />
+            <CardContent className="text-center">
+              <Alert className="mb-4">
+                <AlertCircle className="w-4 h-4" />
                 <AlertDescription>
                   Please sign in to access the Resume Reviewer feature
                 </AlertDescription>
               </Alert>
-              <Button onClick={login} className="w-full\">
+              <Button onClick={login} className="w-full">
                 Sign in with Google
               </Button>
             </CardContent>
@@ -132,58 +132,58 @@ const ResumeReviewer = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4\">
-      <div className="max-w-6xl mx-auto\">
-        <div className="text-center mb-8\">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4\">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
             AI Resume Reviewer
           </h1>
-          <p className="text-xl text-gray-600\">
+          <p className="text-xl text-gray-600">
             Get comprehensive feedback and improve your resume's ATS compatibility
           </p>
         </div>
 
         {!analysis ? (
-          <div className="grid lg:grid-cols-2 gap-8\">
+          <div className="grid lg:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2\">
-                  <Upload className="w-5 h-5\" />
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="w-5 h-5" />
                   Upload Resume
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4\">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center\">
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <input
-                      type=\"file\"
-                      accept=\".pdf,.doc,.docx,.txt\"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt"
                       onChange={(e) => setFile(e.target.files[0])}
-                      className="hidden\"
-                      id=\"resume-upload\"
+                      className="hidden"
+                      id="resume-upload"
                     />
-                    <label htmlFor=\"resume-upload\" className="cursor-pointer\">
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4\" />
-                      <p className="text-gray-600\">Click to upload your resume</p>
-                      <p className="text-sm text-gray-400\">PDF, DOC, DOCX, TXT files supported</p>
+                    <label htmlFor="resume-upload" className="cursor-pointer">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">Click to upload your resume</p>
+                      <p className="text-sm text-gray-400">PDF, DOC, DOCX, TXT files supported</p>
                     </label>
                   </div>
                   
                   {file && (
-                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg\">
-                      <FileText className="w-4 h-4 text-blue-600\" />
-                      <span className="text-sm text-blue-800\">{file.name}</span>
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm text-blue-800">{file.name}</span>
                     </div>
                   )}
 
-                  <div className="space-y-3\">
+                  <div className="space-y-3">
                     <Input
-                      placeholder=\"Target role (e.g., Software Engineer)\"
+                      placeholder="Target role (e.g., Software Engineer)"
                       value={targetRole}
                       onChange={(e) => setTargetRole(e.target.value)}
                     />
                     <Textarea
-                      placeholder=\"Job description (optional - for better matching)\"
+                      placeholder="Job description (optional - for better matching)"
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
                       rows={4}
@@ -193,7 +193,7 @@ const ResumeReviewer = () => {
                   <Button 
                     onClick={handleFileUpload} 
                     disabled={loading || !file}
-                    className="w-full\"
+                    className="w-full"
                   >
                     {loading ? 'Analyzing...' : 'Analyze Resume'}
                   </Button>
@@ -203,29 +203,29 @@ const ResumeReviewer = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2\">
-                  <FileText className="w-5 h-5\" />
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
                   Paste Resume Text
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4\">
+                <div className="space-y-4">
                   <Textarea
-                    placeholder=\"Paste your resume text here...\"
+                    placeholder="Paste your resume text here..."
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
                     rows={10}
-                    className="min-h-[200px]\"
+                    className="min-h-[200px]"
                   />
 
-                  <div className="space-y-3\">
+                  <div className="space-y-3">
                     <Input
-                      placeholder=\"Target role (e.g., Software Engineer)\"
+                      placeholder="Target role (e.g., Software Engineer)"
                       value={targetRole}
                       onChange={(e) => setTargetRole(e.target.value)}
                     />
                     <Textarea
-                      placeholder=\"Job description (optional)\"
+                      placeholder="Job description (optional)"
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
                       rows={4}
@@ -235,7 +235,7 @@ const ResumeReviewer = () => {
                   <Button 
                     onClick={handleTextAnalysis} 
                     disabled={loading || !resumeText.trim()}
-                    className="w-full\"
+                    className="w-full"
                   >
                     {loading ? 'Analyzing...' : 'Analyze Text'}
                   </Button>
@@ -244,11 +244,11 @@ const ResumeReviewer = () => {
             </Card>
           </div>
         ) : (
-          <div className="space-y-6\">
-            <div className="flex justify-between items-center\">
-              <h2 className="text-2xl font-bold text-gray-900\">Analysis Results</h2>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
               <Button 
-                variant=\"outline\" 
+                variant="outline" 
                 onClick={() => {
                   setAnalysis(null);
                   setFile(null);
@@ -261,57 +261,57 @@ const ResumeReviewer = () => {
             </div>
 
             {/* Score Overview */}
-            <div className="grid md:grid-cols-4 gap-4\">
+            <div className="grid md:grid-cols-4 gap-4">
               <Card>
-                <CardContent className="p-4 text-center\">
+                <CardContent className="p-4 text-center">
                   <div className={`text-3xl font-bold ${getScoreColor(analysis.overall_score)}`}>
                     {Math.round(analysis.overall_score)}%
                   </div>
-                  <p className="text-sm text-gray-600\">Overall Score</p>
+                  <p className="text-sm text-gray-600">Overall Score</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center\">
+                <CardContent className="p-4 text-center">
                   <div className={`text-3xl font-bold ${getScoreColor(analysis.keyword_match_score)}`}>
                     {Math.round(analysis.keyword_match_score)}%
                   </div>
-                  <p className="text-sm text-gray-600\">Keyword Match</p>
+                  <p className="text-sm text-gray-600">Keyword Match</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center\">
+                <CardContent className="p-4 text-center">
                   <div className={`text-3xl font-bold ${getScoreColor(analysis.formatting_score)}`}>
                     {Math.round(analysis.formatting_score)}%
                   </div>
-                  <p className="text-sm text-gray-600\">ATS Format</p>
+                  <p className="text-sm text-gray-600">ATS Format</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center\">
-                  <div className="text-3xl font-bold text-blue-600\">
+                <CardContent className="p-4 text-center">
+                  <div className="text-3xl font-bold text-blue-600">
                     {analysis.recommendations.length}
                   </div>
-                  <p className="text-sm text-gray-600\">Recommendations</p>
+                  <p className="text-sm text-gray-600">Recommendations</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Detailed Analysis */}
-            <div className="grid lg:grid-cols-2 gap-6\">
+            <div className="grid lg:grid-cols-2 gap-6">
               {/* Strengths */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600\">
-                    <CheckCircle className="w-5 h-5\" />
+                  <CardTitle className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
                     Strengths
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2\">
+                  <ul className="space-y-2">
                     {analysis.strengths.map((strength, index) => (
-                      <li key={index} className="flex items-start gap-2\">
-                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0\" />
-                        <span className="text-sm\">{strength}</span>
+                      <li key={index} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{strength}</span>
                       </li>
                     ))}
                   </ul>
@@ -321,17 +321,17 @@ const ResumeReviewer = () => {
               {/* Weaknesses */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-600\">
-                    <AlertCircle className="w-5 h-5\" />
+                  <CardTitle className="flex items-center gap-2 text-red-600">
+                    <AlertCircle className="w-5 h-5" />
                     Areas for Improvement
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2\">
+                  <ul className="space-y-2">
                     {analysis.weaknesses.map((weakness, index) => (
-                      <li key={index} className="flex items-start gap-2\">
-                        <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0\" />
-                        <span className="text-sm\">{weakness}</span>
+                      <li key={index} className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{weakness}</span>
                       </li>
                     ))}
                   </ul>
@@ -339,18 +339,18 @@ const ResumeReviewer = () => {
               </Card>
 
               {/* Suggestions */}
-              <Card className="lg:col-span-2\">
+              <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-600\">
-                    <TrendingUp className="w-5 h-5\" />
+                  <CardTitle className="flex items-center gap-2 text-blue-600">
+                    <TrendingUp className="w-5 h-5" />
                     Actionable Suggestions
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4\">
+                  <div className="grid md:grid-cols-2 gap-4">
                     {analysis.suggestions.map((suggestion, index) => (
-                      <div key={index} className="p-3 bg-blue-50 rounded-lg\">
-                        <p className="text-sm text-blue-800\">{suggestion}</p>
+                      <div key={index} className="p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800">{suggestion}</p>
                       </div>
                     ))}
                   </div>
@@ -358,24 +358,24 @@ const ResumeReviewer = () => {
               </Card>
 
               {/* Priority Recommendations */}
-              <Card className="lg:col-span-2\">
+              <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-purple-600\">
-                    <Star className="w-5 h-5\" />
+                  <CardTitle className="flex items-center gap-2 text-purple-600">
+                    <Star className="w-5 h-5" />
                     Priority Recommendations
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3\">
+                  <div className="space-y-3">
                     {analysis.recommendations.map((rec, index) => (
-                      <div key={index} className="p-4 border border-purple-200 rounded-lg bg-purple-50\">
-                        <div className="flex items-center gap-2 mb-1\">
-                          <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full\">
+                      <div key={index} className="p-4 border border-purple-200 rounded-lg bg-purple-50">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
                             {index + 1}
                           </span>
-                          <span className="font-medium text-purple-800\">Priority Action</span>
+                          <span className="font-medium text-purple-800">Priority Action</span>
                         </div>
-                        <p className="text-sm text-purple-700\">{rec}</p>
+                        <p className="text-sm text-purple-700">{rec}</p>
                       </div>
                     ))}
                   </div>
@@ -386,9 +386,9 @@ const ResumeReviewer = () => {
         )}
 
         {error && (
-          <Alert className="mt-4 border-red-200 bg-red-50\">
-            <AlertCircle className="w-4 h-4 text-red-600\" />
-            <AlertDescription className="text-red-800\">{error}</AlertDescription>
+          <Alert className="mt-4 border-red-200 bg-red-50">
+            <AlertCircle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
           </Alert>
         )}
       </div>
