@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { publicApi } from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Header from './Header';
+import { useAuth } from '../contexts/AuthContext';
 
 const Articles = () => {
   const [articles, setArticles] = useState([]);
