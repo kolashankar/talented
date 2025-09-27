@@ -207,10 +207,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Update environment configuration"
-    - "Update admin authentication system"
-    - "Update frontend environment configuration"
-  stuck_tasks: []
+    - "AI Service Integration"
+    - "Resume Processing Endpoints"
+    - "Portfolio Builder Endpoints"
+  stuck_tasks:
+    - "AI Service Integration"
   test_all: false
   test_priority: "high_first"
 
