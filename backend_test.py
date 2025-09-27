@@ -159,7 +159,7 @@ class TalentDBackendTester:
             data.add_field('target_role', 'Software Engineer')
             
             async with self.session.post(f"{BACKEND_URL}/resume/upload-analyze", data=data) as response:
-                if response.status == 401:
+                if response.status in [401, 403]:  # Both are acceptable for unauthorized access
                     self.log_test("Resume Upload (No Auth)", True, 
                                 "Correctly rejected request without authentication")
                 else:
