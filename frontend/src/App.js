@@ -10,6 +10,7 @@ import ArticleManagement from "./components/admin/ArticleManagement";
 import RoadmapManagement from "./components/admin/RoadmapManagement";
 import AIContentGenerator from "./components/admin/AIContentGenerator";
 import ResumeReviewer from "./components/ResumeReviewer";
+import PortfolioBuilder from "./components/PortfolioBuilder";
 import "./App.css";
 import { Toaster } from "./components/ui/toaster";
 
