@@ -26,6 +26,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/resume-review" element={<ResumeReviewer />} />
+            <Route path="/portfolio-builder" element={<PortfolioBuilder />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
