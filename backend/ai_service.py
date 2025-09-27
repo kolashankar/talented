@@ -3,7 +3,11 @@ import json
 from typing import Dict, Any, Optional
 from datetime import datetime
 from emergentintegrations.llm.chat import LlmChat, UserMessage
-from models import AIContentRequest, AIContentResponse, ResumeAnalysisRequest, ResumeAnalysisResponse
+from models import (
+    AIContentRequest, AIContentResponse, ResumeAnalysisRequest, ResumeAnalysisResponse,
+    ResumeParseRequest, ResumeParseResponse, PortfolioGenerateRequest, Portfolio,
+    ParsedResumeData, PersonalDetails, Education, Experience, Project
+)
 import os
 from dotenv import load_dotenv
 import logging
