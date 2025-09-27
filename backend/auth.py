@@ -99,18 +99,24 @@ async def get_current_active_admin(current_admin: AdminUser = Depends(get_curren
 
 async def create_default_admin():
     """Create default admin user if none exists"""
-    db = await get_database()
-    admin_count = await db.admin_users.count_documents({})
-    
-    if admin_count == 0:
-        default_admin = {
-            "username": "admin",
-            "email": "admin@talentd.local",
-            "hashed_password": get_password_hash("admin123"),
-            "is_active": True,
-            "is_superuser": True,
-            "created_at": datetime.utcnow()
-        }
+    try:
+        db = await get_database()
+        admin_count = await db.admin_users.count_documents({})
         
-        await db.admin_users.insert_one(default_admin)
-        print("Default admin created - username: admin, password: admin123")
+        if admin_count == 0:
+            # Use a simple password that's well under 72 bytes
+            default_admin = {
+                "username": "admin",
+                "email": "admin@talentd.local",
+                "hashed_password": get_password_hash("admin123"),
+                "is_active": True,
+                "is_superuser": True,
+                "created_at": datetime.utcnow()
+            }
+            
+            await db.admin_users.insert_one(default_admin)
+            print("Default admin created - username: admin, password: admin123")
+    except Exception as e:
+        print(f"Error creating default admin: {str(e)}")
+        # Don't raise the error, just log it
+        pass
