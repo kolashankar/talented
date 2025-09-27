@@ -14,7 +14,7 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (isAuthenticated) {
+  if (isAdminAuthenticated) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
