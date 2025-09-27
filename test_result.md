@@ -175,13 +175,16 @@ backend:
     implemented: true
     working: false
     file: "backend/ai_service.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "Critical issue: AI service successfully calls Gemini LLM but fails to parse responses as JSON. Error: 'Expecting value: line 1 column 1 (char 0)'. All AI-dependent features broken."
+      - working: false
+        agent: "testing"
+        comment: "AI service partially working: /api/ai/generate-content works correctly and generates job content successfully. However, /api/ai/generate-job and portfolio generation still failing with JSON parsing error 'Expecting value: line 1 column 1 (char 0)'. LLM calls successful but response parsing inconsistent."
 
   - task: "Environment Configuration"
     implemented: true
