@@ -93,25 +93,40 @@ async def get_current_active_admin(current_admin: AdminUser = Depends(get_curren
     return current_admin
 
 async def create_default_admin():
-    """Create default admin user if none exists"""
+    """Create default admin user with specified credentials"""
     try:
         db = await get_database()
-        admin_count = await db.admin_users.count_documents({})
         
-        if admin_count == 0:
-            # Use a simple password that's well under 72 bytes
-            default_admin = {
-                "username": "admin",
-                "email": "admin@talentd.local",
-                "hashed_password": get_password_hash("admin123"),
-                "is_active": True,
-                "is_superuser": True,
-                "created_at": datetime.utcnow()
-            }
+        # Admin credentials from environment
+        admin_email = os.getenv("ADMIN_EMAIL", "kolashankar113@gmail.com")
+        admin_password = os.getenv("ADMIN_PASSWORD", "Shankar@113")
+        
+        # Check if admin already exists
+        existing_admin = await db.admin_users.find_one({"email": admin_email})
+        
+        if not existing_admin:
+            # Create the specified admin user
+            admin_user = AdminUser(
+                username="admin",
+                email=admin_email,
+                hashed_password=get_password_hash(admin_password),
+                is_active=True,
+                is_superuser=True
+            )
             
-            await db.admin_users.insert_one(default_admin)
-            print("Default admin created - username: admin, password: admin123")
+            admin_dict = admin_user.dict()
+            await db.admin_users.insert_one(admin_dict)
+            print(f"Admin created - email: {admin_email}")
+        else:
+            # Update password if admin exists but password might have changed
+            hashed_password = get_password_hash(admin_password)
+            await db.admin_users.update_one(
+                {"email": admin_email},
+                {"$set": {"hashed_password": hashed_password, "is_active": True}}
+            )
+            print(f"Admin password updated - email: {admin_email}")
+            
     except Exception as e:
-        print(f"Error creating default admin: {str(e)}")
+        print(f"Error creating/updating admin: {str(e)}")
         # Don't raise the error, just log it
         pass
