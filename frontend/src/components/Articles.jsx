@@ -20,6 +20,12 @@ const Articles = () => {
     fetchArticles();
   }, [searchTerm, categoryFilter]);
 
+  useEffect(() => {
+    if (user && articles.length > 0) {
+      fetchInteractionStatus();
+    }
+  }, [articles, user]);
+
   const fetchArticles = async () => {
     try {
       setLoading(true);
