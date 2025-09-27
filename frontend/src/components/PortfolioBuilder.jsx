@@ -158,8 +158,8 @@ const PortfolioBuilder = () => {
 
   if (!user) {
     return (
-      <div className=\"min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4\">
-        <div className=\"max-w-md mx-auto\">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4">
+        <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className=\"text-center\">
               <Globe className=\"w-12 h-12 text-purple-600 mx-auto mb-4\" />
