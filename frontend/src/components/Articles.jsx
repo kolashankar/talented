@@ -7,11 +7,14 @@ import Header from './Header';
 import { useAuth } from '../contexts/AuthContext';
 
 const Articles = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [interactions, setInteractions] = useState({}); // Store like/save status for each article
 
   useEffect(() => {
     fetchArticles();
