@@ -23,7 +23,7 @@ const AdminLogin = () => {
     setLoading(true);
     setError("");
 
-    const result = await login(username, password);
+    const result = await adminLogin(username, password);
     
     if (!result.success) {
       setError(result.error);
