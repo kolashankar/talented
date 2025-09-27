@@ -83,10 +83,15 @@ logger = logging.getLogger(__name__)
 # Startup event
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database connection and create default admin"""
+    """Initialize database connection, create default admin, and initialize footer pages"""
     try:
         await connect_to_mongo()
         await create_default_admin()
+        
+        # Initialize footer pages
+        from footer_routes import initialize_footer_pages
+        await initialize_footer_pages()
+        
         logger.info("Application started successfully")
         logger.info("Default admin credentials: username=admin, password=admin123")
     except Exception as e:
