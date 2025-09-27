@@ -457,6 +457,255 @@ class TalentDBackendTester:
         except Exception as e:
             self.log_test("User Portfolios List", False, f"Error: {str(e)}")
     
+    async def test_footer_pages_endpoints(self):
+        """Test footer pages endpoints"""
+        try:
+            # Test get all pages
+            async with self.session.get(f"{BACKEND_URL}/pages/") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    pages = data.get("pages", [])
+                    self.log_test("Footer Pages List", True, 
+                                f"Retrieved {len(pages)} footer pages")
+                    
+                    # Test individual page access
+                    if pages:
+                        test_page = pages[0]
+                        slug = test_page.get("slug", "")
+                        if slug:
+                            async with self.session.get(f"{BACKEND_URL}/pages/{slug}") as page_response:
+                                if page_response.status == 200:
+                                    page_data = await page_response.json()
+                                    self.log_test("Footer Page by Slug", True, 
+                                                f"Retrieved page: {page_data.get('page', {}).get('title', 'N/A')}")
+                                else:
+                                    self.log_test("Footer Page by Slug", False, 
+                                                f"Status: {page_response.status}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Footer Pages List", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("Footer Pages", False, f"Error: {str(e)}")
+
+    async def test_company_endpoints(self):
+        """Test company profile endpoints"""
+        try:
+            # Test search companies
+            async with self.session.get(f"{BACKEND_URL}/companies/") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    companies = data.get("companies", [])
+                    total = data.get("total", 0)
+                    self.log_test("Company Search", True, 
+                                f"Retrieved {len(companies)} companies (total: {total})")
+                    
+                    # Test with search parameter
+                    async with self.session.get(f"{BACKEND_URL}/companies/?search=tech") as search_response:
+                        if search_response.status == 200:
+                            search_data = await search_response.json()
+                            self.log_test("Company Search with Filter", True, 
+                                        f"Search results: {len(search_data.get('companies', []))}")
+                        else:
+                            self.log_test("Company Search with Filter", False, 
+                                        f"Status: {search_response.status}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Company Search", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test industry stats
+            async with self.session.get(f"{BACKEND_URL}/companies/stats/industries") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    industries = data.get("industries", [])
+                    self.log_test("Company Industry Stats", True, 
+                                f"Retrieved {len(industries)} industry statistics")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Company Industry Stats", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("Company Endpoints", False, f"Error: {str(e)}")
+
+    async def test_dsa_endpoints(self):
+        """Test DSA problem endpoints"""
+        try:
+            # Test get categories
+            async with self.session.get(f"{BACKEND_URL}/dsa/categories") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    categories = data.get("categories", [])
+                    self.log_test("DSA Categories", True, 
+                                f"Retrieved {len(categories)} DSA categories")
+                else:
+                    error_data = await response.text()
+                    self.log_test("DSA Categories", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test get problems
+            async with self.session.get(f"{BACKEND_URL}/dsa/problems") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    problems = data.get("problems", [])
+                    total = data.get("total", 0)
+                    self.log_test("DSA Problems List", True, 
+                                f"Retrieved {len(problems)} problems (total: {total})")
+                else:
+                    error_data = await response.text()
+                    self.log_test("DSA Problems List", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test user progress (requires authentication)
+            if self.user_token:
+                headers = {"Authorization": f"Bearer {self.user_token}"}
+                async with self.session.get(f"{BACKEND_URL}/dsa/progress", headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        total_solved = data.get("total_solved", 0)
+                        total_problems = data.get("total_problems", 0)
+                        self.log_test("DSA User Progress", True, 
+                                    f"User progress: {total_solved}/{total_problems} solved")
+                    else:
+                        error_data = await response.text()
+                        self.log_test("DSA User Progress", False, 
+                                    f"Status: {response.status}", error_data)
+            else:
+                self.log_test("DSA User Progress", False, "No user token available")
+                    
+        except Exception as e:
+            self.log_test("DSA Endpoints", False, f"Error: {str(e)}")
+
+    async def test_interaction_endpoints(self):
+        """Test user interaction endpoints"""
+        if not self.user_token:
+            self.log_test("User Interactions", False, "No user token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.user_token}"}
+            
+            # Test like functionality
+            test_content_id = "test-article-123"
+            async with self.session.post(f"{BACKEND_URL}/interactions/article/{test_content_id}/like", 
+                                       headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    liked = data.get("liked", False)
+                    total_likes = data.get("total_likes", 0)
+                    self.log_test("Like Content", True, 
+                                f"Like toggled: {liked}, Total likes: {total_likes}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Like Content", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test save functionality
+            async with self.session.post(f"{BACKEND_URL}/interactions/article/{test_content_id}/save", 
+                                       headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    saved = data.get("saved", False)
+                    message = data.get("message", "")
+                    self.log_test("Save Content", True, 
+                                f"Save toggled: {saved}, Message: {message}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Save Content", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test share functionality
+            async with self.session.post(f"{BACKEND_URL}/interactions/article/{test_content_id}/share", 
+                                       headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    share_url = data.get("share_url", "")
+                    self.log_test("Share Content", True, 
+                                f"Content shared: {share_url}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Share Content", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test get saved items
+            async with self.session.get(f"{BACKEND_URL}/interactions/saved", headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    saved_items = data.get("saved_items", [])
+                    self.log_test("Get Saved Items", True, 
+                                f"Retrieved {len(saved_items)} saved items")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Get Saved Items", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test interaction status
+            async with self.session.get(f"{BACKEND_URL}/interactions/article/{test_content_id}/status", 
+                                      headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    liked = data.get("liked", False)
+                    saved = data.get("saved", False)
+                    total_likes = data.get("total_likes", 0)
+                    self.log_test("Interaction Status", True, 
+                                f"Status - Liked: {liked}, Saved: {saved}, Total likes: {total_likes}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Interaction Status", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("User Interactions", False, f"Error: {str(e)}")
+
+    async def test_existing_admin_endpoints(self):
+        """Test existing admin endpoints to ensure they still work"""
+        if not self.admin_token:
+            self.log_test("Admin Endpoints", False, "No admin token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            
+            # Test admin dashboard stats
+            async with self.session.get(f"{BACKEND_URL}/admin/dashboard/stats", headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    self.log_test("Admin Dashboard Stats", True, 
+                                f"Retrieved dashboard statistics")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Admin Dashboard Stats", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test admin jobs endpoint
+            async with self.session.get(f"{BACKEND_URL}/admin/jobs", headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    jobs = data.get("jobs", []) if isinstance(data, dict) else data
+                    self.log_test("Admin Jobs List", True, 
+                                f"Retrieved {len(jobs) if isinstance(jobs, list) else 'N/A'} jobs")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Admin Jobs List", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test admin internships endpoint
+            async with self.session.get(f"{BACKEND_URL}/admin/internships", headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    internships = data.get("internships", []) if isinstance(data, dict) else data
+                    self.log_test("Admin Internships List", True, 
+                                f"Retrieved {len(internships) if isinstance(internships, list) else 'N/A'} internships")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Admin Internships List", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("Admin Endpoints", False, f"Error: {str(e)}")
+
     async def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting TalentD Platform Backend Tests")
@@ -472,6 +721,17 @@ class TalentDBackendTester:
         # User authentication tests
         await self.test_user_auth_me_endpoint()
         await self.test_mock_google_user_auth()
+        
+        # NEW: Test new API endpoints
+        print("\n🔍 Testing New API Endpoints...")
+        await self.test_footer_pages_endpoints()
+        await self.test_company_endpoints()
+        await self.test_dsa_endpoints()
+        await self.test_interaction_endpoints()
+        
+        # Test existing functionality
+        print("\n🔄 Testing Existing Functionality...")
+        await self.test_existing_admin_endpoints()
         
         # Resume processing tests
         await self.test_resume_upload_without_auth()
