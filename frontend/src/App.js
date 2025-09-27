@@ -17,6 +17,15 @@ import { Toaster } from "./components/ui/toaster";
 // Public routes (existing TalentD clone)
 import HomePage from "./components/HomePage";
 
+// New public routes
+import Jobs from "./components/Jobs";
+import Internships from "./components/Internships";
+import Articles from "./components/Articles";
+import Roadmaps from "./components/Roadmaps";
+import DSACorner from "./components/DSACorner";
+import UserLogin from "./components/UserLogin";
+import UserRegister from "./components/UserRegister";
+
 function App() {
   return (
     <AuthProvider>
