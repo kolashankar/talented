@@ -529,19 +529,75 @@ const DSAProblemDetail = () => {
               />
               
               <div className="flex justify-between items-center mt-4">
-                <div className="text-sm text-gray-600">
-                  {userProgress && (
-                    <span>Attempts: {userProgress.attempts} • Status: {userProgress.status}</span>
-                  )}
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-600">
+                    {userProgress && (
+                      <span>Attempts: {userProgress.attempts} • Status: {userProgress.status}</span>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={runCode} 
+                    disabled={isRunning}
+                    variant="outline"
+                    size="sm"
+                    className="bg-blue-50 hover:bg-blue-100 text-blue-600"
+                  >
+                    {isRunning ? 'Running...' : '▶️ Run Code'}
+                  </Button>
                 </div>
                 <Button 
                   onClick={submitSolution} 
                   disabled={isSubmitting}
                   className="bg-green-600 hover:bg-green-700"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Solution'}
+                  {isSubmitting ? 'Submitting...' : '📤 Submit Solution'}
                 </Button>
               </div>
+
+              {/* Test Results */}
+              {testResults && (
+                <div className="mt-4 p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium">Test Results</h4>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      testResults.status === 'success' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {testResults.status}
+                    </span>
+                  </div>
+                  
+                  {testResults.message && (
+                    <div className="mb-3 text-sm text-gray-700">
+                      {testResults.message}
+                    </div>
+                  )}
+
+                  {testResults.test_cases && testResults.test_cases.length > 0 && (
+                    <div className="space-y-2">
+                      {testResults.test_cases.map((test, index) => (
+                        <div key={index} className={`p-2 rounded text-sm ${
+                          test.passed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                        } border`}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">Test Case {index + 1}</span>
+                            <span className={test.passed ? 'text-green-600' : 'text-red-600'}>
+                              {test.passed ? '✅ Passed' : '❌ Failed'}
+                            </span>
+                          </div>
+                          {!test.passed && test.expected && (
+                            <div className="mt-1 text-xs">
+                              <div>Expected: {test.expected}</div>
+                              <div>Got: {test.actual}</div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Recent Submissions */}
