@@ -23,13 +23,19 @@ const AdminLogin = () => {
     setLoading(true);
     setError("");
 
-    const result = await adminLogin(username, password);
-    
-    if (!result.success) {
-      setError(result.error);
+    try {
+      const result = await adminLogin(username, password);
+      
+      if (!result || !result.success) {
+        setError(result?.error || "Login failed. Please try again.");
+      }
+      // If successful, the redirect will happen automatically due to isAdminAuthenticated
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Login failed. Please check your credentials and try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
