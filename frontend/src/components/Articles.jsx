@@ -131,6 +131,47 @@ const Articles = () => {
     }
   };
 
+  const handleDownload = async (articleId, articleTitle) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/interactions/article/${articleId}/download`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(`${data.message}. Download feature will be available soon!`);
+        // In a real implementation, you would trigger the actual download here
+        // window.open(data.download_url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error downloading:', error);
+    }
+  };
+
+  const handleApplyNow = async (articleId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // This would typically be for job-related articles
+    alert('Apply Now functionality - would redirect to job application form');
+  };
+
+  const handleViewCompanyProfile = (companyId) => {
+    navigate(`/companies/${companyId}`);
+  };
+
   const handleReadMore = (article) => {
     navigate(`/articles/${article.id}`);
   };
