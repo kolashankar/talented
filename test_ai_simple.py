@@ -7,7 +7,7 @@ import asyncio
 import aiohttp
 import json
 
-BACKEND_URL = "https://multi-footer.preview.emergentagent.com/api"
+BACKEND_URL = "https://fix-render-loop.preview.emergentagent.com/api"
 ADMIN_EMAIL = "kolashankar113@gmail.com"
 ADMIN_PASSWORD = "Shankar@113"
 
