@@ -178,6 +178,54 @@ async def apply_to_position(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to apply: {str(e)}")
 
+# Download article as PDF
+@interaction_router.post("/{content_type}/{content_id}/download")
+async def download_content(
+    content_type: str,
+    content_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Download content and track download"""
+    try:
+        if content_type not in ["article", "roadmap"]:
+            raise HTTPException(status_code=400, detail="Download only available for articles and roadmaps")
+        
+        db = await get_database()
+        
+        # Get the content
+        collection = db.articles if content_type == "article" else db.roadmaps
+        content = await collection.find_one({"id": content_id, "status": "published"})
+        
+        if not content:
+            raise HTTPException(status_code=404, detail=f"{content_type.title()} not found")
+        
+        # Track the download
+        download_data = UserInteraction(
+            user_id=current_user.id,
+            content_type=content_type,
+            content_id=content_id,
+            interaction_type="download"
+        )
+        await db.user_interactions.insert_one(download_data.dict())
+        
+        # Update download count
+        await collection.update_one(
+            {"id": content_id},
+            {"$inc": {"downloads": 1}}
+        )
+        
+        # Generate download URL (in a real app, this would be a pre-signed URL to a PDF)
+        download_url = f"/api/public/{content_type}s/{content_id}/pdf"
+        
+        return {
+            "message": f"{content_type.title()} prepared for download",
+            "download_url": download_url,
+            "filename": f"{content['title'].replace(' ', '_')}.pdf"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download: {str(e)}")
+
 # Get user's saved items
 def convert_objectid_to_str(doc):
     """Convert MongoDB ObjectId to string for JSON serialization"""
