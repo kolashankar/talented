@@ -248,13 +248,19 @@ const DSACorner = () => {
                           <span>Topic: {problem.topic}</span>
                           <span>Companies: {problem.companies.slice(0, 2).join(', ')}</span>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant={problem.solved ? "outline" : "default"}
-                          onClick={() => handleProblemAction(problem)}
-                        >
-                          {problem.solved ? 'Review' : 'Solve'}
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant={problem.solved ? "outline" : "default"}
+                            onClick={() => handleProblemAction(problem)}
+                            className={problem.solved ? "bg-green-50 text-green-600 border-green-200" : ""}
+                          >
+                            {problem.solved ? '📋 Review' : '🚀 Solve'}
+                          </Button>
+                          {problem.solved && (
+                            <span className="text-xs text-green-600 font-medium">✅</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
