@@ -272,6 +272,11 @@ test_plan:
     - "AI Service Integration"
   test_all: false
   test_priority: "high_first"
+  completed_features:
+    - "DSA Run Code Endpoint"
+    - "Enhanced Download Functionality" 
+    - "DSA Problem Submission Endpoint"
+    - "Article Endpoints Integration"
 
   - task: "DSA Run Code Endpoint"
     implemented: true
