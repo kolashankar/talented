@@ -120,10 +120,14 @@ export const AuthProvider = ({ children }) => {
   // Admin Login
   const adminLogin = async (username, password) => {
     try {
+      console.log("🔐 Admin login attempt:", { username, API });
+      
       const response = await axios.post(`${API}/auth/login`, {
         username,
         password
       });
+
+      console.log("✅ Login response:", response.status, response.data);
 
       const { access_token, user: userData } = response.data;
       
@@ -131,12 +135,20 @@ export const AuthProvider = ({ children }) => {
       setAdminToken(access_token);
       setAdminUser(userData);
       
+      console.log("✅ Admin login successful, token stored");
       return { success: true };
     } catch (error) {
-      console.error("Admin login error:", error);
+      console.error("❌ Admin login error:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      
       return { 
         success: false, 
-        error: error.response?.data?.detail || "Login failed"
+        error: error.response?.data?.detail || error.message || "Login failed"
       };
     }
   };
