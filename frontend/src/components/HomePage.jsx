@@ -10,6 +10,7 @@ import CompanyLogos from "./CompanyLogos";
 import TestimonialsSection from "./TestimonialsSection";
 import ArticlesSection from "./ArticlesSection";
 import CTASection from "./CTASection";
+import Footer from "./Footer";
 
 const HomePage = () => {
   return (
