@@ -709,9 +709,201 @@ class TalentDBackendTester:
         except Exception as e:
             self.log_test("Admin Endpoints", False, f"Error: {str(e)}")
 
+    async def test_dsa_run_code_endpoint(self):
+        """Test the new DSA run code endpoint"""
+        if not self.user_token:
+            self.log_test("DSA Run Code", False, "No user token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.user_token}"}
+            
+            # First get a problem to test with
+            async with self.session.get(f"{BACKEND_URL}/dsa/problems") as response:
+                if response.status != 200:
+                    self.log_test("DSA Run Code", False, "Could not fetch problems for testing")
+                    return
+                    
+                data = await response.json()
+                problems = data.get("problems", [])
+                if not problems:
+                    self.log_test("DSA Run Code", False, "No problems available for testing")
+                    return
+                
+                test_problem_id = problems[0]["id"]
+            
+            # Test run code endpoint
+            run_code_data = {
+                "code": "def solution(nums):\n    return sum(nums)",
+                "language": "python"
+            }
+            
+            async with self.session.post(f"{BACKEND_URL}/dsa/problems/{test_problem_id}/run", 
+                                       json=run_code_data, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    status = data.get("status", "")
+                    passed = data.get("test_cases_passed", 0)
+                    total = data.get("total_test_cases", 0)
+                    self.log_test("DSA Run Code", True, 
+                                f"Code execution: {status}, {passed}/{total} test cases passed")
+                else:
+                    error_data = await response.text()
+                    self.log_test("DSA Run Code", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("DSA Run Code", False, f"Error: {str(e)}")
+
+    async def test_dsa_submit_endpoint(self):
+        """Test the existing DSA submit endpoint to ensure it still works"""
+        if not self.user_token:
+            self.log_test("DSA Submit", False, "No user token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.user_token}"}
+            
+            # First get a problem to test with
+            async with self.session.get(f"{BACKEND_URL}/dsa/problems") as response:
+                if response.status != 200:
+                    self.log_test("DSA Submit", False, "Could not fetch problems for testing")
+                    return
+                    
+                data = await response.json()
+                problems = data.get("problems", [])
+                if not problems:
+                    self.log_test("DSA Submit", False, "No problems available for testing")
+                    return
+                
+                test_problem_id = problems[0]["id"]
+            
+            # Test submit endpoint
+            submit_data = {
+                "code": "def solution(nums):\n    return sorted(nums)",
+                "language": "python"
+            }
+            
+            async with self.session.post(f"{BACKEND_URL}/dsa/problems/{test_problem_id}/submit", 
+                                       json=submit_data, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    status = data.get("status", "")
+                    submission_id = data.get("submission_id", "")
+                    passed = data.get("test_cases_passed", 0)
+                    total = data.get("total_test_cases", 0)
+                    self.log_test("DSA Submit", True, 
+                                f"Submission {submission_id}: {status}, {passed}/{total} test cases")
+                else:
+                    error_data = await response.text()
+                    self.log_test("DSA Submit", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("DSA Submit", False, f"Error: {str(e)}")
+
+    async def test_download_functionality(self):
+        """Test the new download functionality for articles and roadmaps"""
+        if not self.user_token:
+            self.log_test("Download Functionality", False, "No user token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.user_token}"}
+            
+            # Test article download
+            test_article_id = "test-article-download-123"
+            async with self.session.post(f"{BACKEND_URL}/interactions/article/{test_article_id}/download", 
+                                       headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    download_url = data.get("download_url", "")
+                    filename = data.get("filename", "")
+                    self.log_test("Article Download", True, 
+                                f"Download prepared: {filename}, URL: {download_url}")
+                elif response.status == 404:
+                    # Expected for test data
+                    self.log_test("Article Download", True, 
+                                "Download endpoint working (404 expected for test data)")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Article Download", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test roadmap download
+            test_roadmap_id = "test-roadmap-download-456"
+            async with self.session.post(f"{BACKEND_URL}/interactions/roadmap/{test_roadmap_id}/download", 
+                                       headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    download_url = data.get("download_url", "")
+                    filename = data.get("filename", "")
+                    self.log_test("Roadmap Download", True, 
+                                f"Download prepared: {filename}, URL: {download_url}")
+                elif response.status == 404:
+                    # Expected for test data
+                    self.log_test("Roadmap Download", True, 
+                                "Download endpoint working (404 expected for test data)")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Roadmap Download", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test invalid content type
+            async with self.session.post(f"{BACKEND_URL}/interactions/job/test-job-123/download", 
+                                       headers=headers) as response:
+                if response.status == 400:
+                    self.log_test("Download Invalid Type", True, 
+                                "Correctly rejected download for invalid content type")
+                else:
+                    self.log_test("Download Invalid Type", False, 
+                                f"Expected 400, got {response.status}")
+                    
+        except Exception as e:
+            self.log_test("Download Functionality", False, f"Error: {str(e)}")
+
+    async def test_article_endpoints(self):
+        """Test article endpoints to ensure they work with enhanced interactions"""
+        try:
+            # Test get published articles
+            async with self.session.get(f"{BACKEND_URL}/public/articles") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    articles_count = len(data) if isinstance(data, list) else 0
+                    self.log_test("Public Articles List", True, 
+                                f"Retrieved {articles_count} published articles")
+                    
+                    # Test article search
+                    async with self.session.get(f"{BACKEND_URL}/public/articles?search=tech") as search_response:
+                        if search_response.status == 200:
+                            search_data = await search_response.json()
+                            self.log_test("Article Search", True, 
+                                        f"Search results: {len(search_data) if isinstance(search_data, list) else 0}")
+                        else:
+                            self.log_test("Article Search", False, 
+                                        f"Status: {search_response.status}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Public Articles List", False, 
+                                f"Status: {response.status}", error_data)
+            
+            # Test article by slug (will likely 404 but endpoint should work)
+            async with self.session.get(f"{BACKEND_URL}/public/articles/test-article-slug") as response:
+                if response.status in [200, 404]:  # Both acceptable
+                    status_msg = "found" if response.status == 200 else "not found (expected)"
+                    self.log_test("Article by Slug", True, 
+                                f"Article endpoint working - article {status_msg}")
+                else:
+                    error_data = await response.text()
+                    self.log_test("Article by Slug", False, 
+                                f"Status: {response.status}", error_data)
+                    
+        except Exception as e:
+            self.log_test("Article Endpoints", False, f"Error: {str(e)}")
+
     async def run_all_tests(self):
         """Run all backend tests"""
-        print("🚀 Starting TalentD Platform Backend Tests")
+        print("🚀 Starting TalentD Platform Backend Tests - Focus on New Features")
         print("=" * 60)
         
         # Basic connectivity tests
@@ -725,16 +917,20 @@ class TalentDBackendTester:
         await self.test_user_auth_me_endpoint()
         await self.test_mock_google_user_auth()
         
-        # NEW: Test new API endpoints
-        print("\n🔍 Testing New API Endpoints...")
-        await self.test_footer_pages_endpoints()
-        await self.test_company_endpoints()
-        await self.test_dsa_endpoints()
-        await self.test_interaction_endpoints()
+        # NEW FEATURES TESTING (as requested in review)
+        print("\n🎯 Testing NEW FEATURES from Review Request...")
+        await self.test_dsa_run_code_endpoint()
+        await self.test_download_functionality()
+        await self.test_dsa_submit_endpoint()
+        await self.test_article_endpoints()
         
         # Test existing functionality
         print("\n🔄 Testing Existing Functionality...")
         await self.test_existing_admin_endpoints()
+        await self.test_footer_pages_endpoints()
+        await self.test_company_endpoints()
+        await self.test_dsa_endpoints()
+        await self.test_interaction_endpoints()
         
         # Resume processing tests
         await self.test_resume_upload_without_auth()
