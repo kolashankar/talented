@@ -298,51 +298,89 @@ const Articles = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleInteraction(article.id, 'like')}
-                        className={`${
-                          interactions[article.id]?.liked 
-                            ? 'bg-red-50 text-red-600 border-red-200' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        {interactions[article.id]?.liked ? '❤️' : '🤍'} Like
-                      </Button>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleInteraction(article.id, 'like')}
+                          className={`${
+                            interactions[article.id]?.liked 
+                              ? 'bg-red-50 text-red-600 border-red-200' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          {interactions[article.id]?.liked ? '❤️' : '🤍'} Like
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleInteraction(article.id, 'save')}
+                          className={`${
+                            interactions[article.id]?.saved 
+                              ? 'bg-blue-50 text-blue-600 border-blue-200' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          {interactions[article.id]?.saved ? '📌' : '🔖'} Save
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleShare(article.id)}
+                          className="hover:bg-gray-50"
+                        >
+                          📤 Share
+                        </Button>
+                      </div>
                       
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleInteraction(article.id, 'save')}
-                        className={`${
-                          interactions[article.id]?.saved 
-                            ? 'bg-blue-50 text-blue-600 border-blue-200' 
-                            : 'hover:bg-gray-50'
-                        }`}
+                      <Button 
+                        size="sm" 
+                        className="bg-purple-600 hover:bg-purple-700"
+                        onClick={() => handleReadMore(article)}
                       >
-                        {interactions[article.id]?.saved ? '📌' : '🔖'} Save
-                      </Button>
-                      
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleShare(article.id)}
-                        className="hover:bg-gray-50"
-                      >
-                        📤 Share
+                        Read More
                       </Button>
                     </div>
-                    
-                    <Button 
-                      size="sm" 
-                      className="bg-purple-600 hover:bg-purple-700"
-                      onClick={() => handleReadMore(article)}
-                    >
-                      Read More
-                    </Button>
+
+                    {/* Additional Action Buttons */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDownload(article.id, article.title)}
+                          className="hover:bg-gray-50 text-green-600 border-green-200"
+                        >
+                          📄 Download
+                        </Button>
+                        
+                        {article.category === 'Career Tips' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleApplyNow(article.id)}
+                            className="hover:bg-gray-50 text-blue-600 border-blue-200"
+                          >
+                            🚀 Apply Now
+                          </Button>
+                        )}
+                        
+                        {article.company_id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewCompanyProfile(article.company_id)}
+                            className="hover:bg-gray-50 text-orange-600 border-orange-200"
+                          >
+                            🏢 Company
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
