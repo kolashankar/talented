@@ -389,6 +389,7 @@ const Articles = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
