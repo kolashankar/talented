@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Header from './Header';
+import Footer from './Footer';
 
 const DSACorner = () => {
   const navigate = useNavigate();
