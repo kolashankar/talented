@@ -758,13 +758,13 @@ class TalentDBackendTester:
                 test_problem_id = "test-problem-123"
                 
                 # Test run code endpoint with mock problem ID
-                run_code_data = {
+                run_code_params = {
                     "code": "def solution(nums):\n    return sum(nums)",
                     "language": "python"
                 }
                 
                 async with self.session.post(f"{BACKEND_URL}/dsa/problems/{test_problem_id}/run", 
-                                           json=run_code_data, headers=headers) as response:
+                                           params=run_code_params, headers=headers) as response:
                     if response.status == 200:
                         data = await response.json()
                         status = data.get("status", "")
