@@ -22,6 +22,9 @@ const DSAProblemDetail = () => {
   const [solution, setSolution] = useState(null);
   const [discussions, setDiscussions] = useState([]);
   const [newDiscussion, setNewDiscussion] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
+  const [testResults, setTestResults] = useState(null);
+  const [showHints, setShowHints] = useState([]);
 
   useEffect(() => {
     if (!user) {
