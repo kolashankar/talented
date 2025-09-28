@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -20,19 +20,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [adminToken, setAdminToken] = useState(localStorage.getItem("admin_token"));
+  const hasCheckedAuth = useRef(false);
+
+  // Set up axios interceptors for tokens
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else if (adminToken) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${adminToken}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token, adminToken]);
 
   // Check if user is authenticated on app load
   useEffect(() => {
+    if (hasCheckedAuth.current) return; // Prevent multiple checks
+    hasCheckedAuth.current = true;
+
     const checkAuth = async () => {
-      let userValid = false;
-      let adminValid = false;
+      const storedToken = localStorage.getItem("token");
+      const storedAdminToken = localStorage.getItem("admin_token");
       
       // Check user authentication
-      if (token) {
+      if (storedToken) {
         try {
           const response = await axios.get(`${API}/user-auth/me`);
           setUser(response.data);
-          userValid = true;
+          // Only update token state if it's different
+          if (token !== storedToken) {
+            setToken(storedToken);
+          }
         } catch (error) {
           console.error("User auth check failed:", error);
           localStorage.removeItem("token");
@@ -42,11 +60,14 @@ export const AuthProvider = ({ children }) => {
       }
       
       // Check admin authentication
-      if (adminToken) {
+      if (storedAdminToken) {
         try {
           const response = await axios.get(`${API}/auth/me`);
           setAdminUser(response.data);
-          adminValid = true;
+          // Only update admin token state if it's different
+          if (adminToken !== storedAdminToken) {
+            setAdminToken(storedAdminToken);
+          }
         } catch (error) {
           console.error("Admin auth check failed:", error);
           localStorage.removeItem("admin_token");
@@ -58,20 +79,8 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    // Only run once on component mount
     checkAuth();
-  }, []); // Remove dependencies to prevent infinite loop
-
-  // Separate useEffect for token changes that only sets axios headers
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else if (adminToken) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${adminToken}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [token, adminToken]);
+  }, []); // No dependencies to prevent infinite loop
 
   // Google Login for users
   const login = () => {
