@@ -4,6 +4,7 @@ import { publicApi } from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Header from './Header';
+import Footer from './Footer';
 import { useAuth } from '../contexts/AuthContext';
 
 const Articles = () => {
