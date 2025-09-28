@@ -280,6 +280,7 @@ const DSACorner = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
