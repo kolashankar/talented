@@ -145,6 +145,60 @@ const DSAProblemDetail = () => {
     }
   };
 
+  const runCode = async () => {
+    if (!code.trim()) {
+      alert('Please write some code before running');
+      return;
+    }
+
+    setIsRunning(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/dsa/problems/${problemId}/run`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code,
+          language
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTestResults(data);
+      } else {
+        const error = await response.json();
+        setTestResults({ 
+          status: 'error', 
+          message: error.detail || 'Failed to run code',
+          test_cases: []
+        });
+      }
+    } catch (error) {
+      console.error('Error running code:', error);
+      setTestResults({ 
+        status: 'error', 
+        message: 'Failed to run code',
+        test_cases: []
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const toggleHint = (index) => {
+    setShowHints(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(i => i !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
+  };
+
   const postDiscussion = async () => {
     if (!newDiscussion.trim()) return;
 
