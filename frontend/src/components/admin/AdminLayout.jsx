@@ -6,7 +6,7 @@ import AdminHeader from "./AdminHeader";
 import { Loader2 } from "lucide-react";
 
 const AdminLayout = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAdminAuthenticated, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -20,7 +20,7 @@ const AdminLayout = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAdminAuthenticated) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
