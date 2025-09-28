@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend API Test</title>
+</head>
+<body>
+    <h1>Frontend API Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        async function testAPI() {
+            // Get the backend URL from environment
+            const backendUrl = 'https://fix-render-loop.preview.emergentagent.com';
+            const apiUrl = `${backendUrl}/api/auth/login`;
+            
+            results.innerHTML += `<p><strong>Testing URL:</strong> ${apiUrl}</p>`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'kolashankar113@gmail.com',
+                        password: 'Shankar@113'
+                    })
+                });
+                
+                results.innerHTML += `<p><strong>Status:</strong> ${response.status}</p>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<p><strong>Success!</strong> Token received: ${data.access_token?.substring(0, 20)}...</p>`;
+                } else {
+                    const errorData = await response.text();
+                    results.innerHTML += `<p><strong>Error:</strong> ${errorData}</p>`;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<p><strong>Network Error:</strong> ${error.message}</p>`;
+                
+                // Test with local backend
+                results.innerHTML += `<br><p><strong>Testing local backend...</strong></p>`;
+                
+                try {
+                    const localUrl = 'http://localhost:8001/api/auth/login';
+                    const response2 = await fetch(localUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: 'kolashankar113@gmail.com',
+                            password: 'Shankar@113'
+                        })
+                    });
+                    
+                    results.innerHTML += `<p><strong>Local Status:</strong> ${response2.status}</p>`;
+                    
+                    if (response2.ok) {
+                        const data = await response2.json();
+                        results.innerHTML += `<p><strong>Local Success!</strong> Token received: ${data.access_token?.substring(0, 20)}...</p>`;
+                    } else {
+                        const errorData = await response2.text();
+                        results.innerHTML += `<p><strong>Local Error:</strong> ${errorData}</p>`;
+                    }
+                    
+                } catch (error2) {
+                    results.innerHTML += `<p><strong>Local Network Error:</strong> ${error2.message}</p>`;
+                }
+            }
+        }
+        
+        // Run test when page loads
+        testAPI();
+    </script>
+</body>
+</html>
