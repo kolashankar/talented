@@ -28,6 +28,7 @@ const HomePage = () => {
         <ArticlesSection />
         <CTASection />
       </div>
+      <Footer />
     </div>
   );
 };
