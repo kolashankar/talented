@@ -48,6 +48,15 @@ function App() {
             <Route path="/register" element={<UserRegister />} />
             <Route path="/resume-review" element={<ResumeReviewer />} />
             <Route path="/portfolio-builder" element={<PortfolioBuilder />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/companies/:companyId" element={<CompanyProfile />} />
+            <Route path="/privacy-policy" element={<StaticPage />} />
+            <Route path="/terms-of-service" element={<StaticPage />} />
+            <Route path="/cookie-policy" element={<StaticPage />} />
+            <Route path="/support" element={<StaticPage />} />
+            <Route path="/about" element={<StaticPage />} />
+            <Route path="/careers" element={<StaticPage />} />
+            <Route path="/:slug" element={<StaticPage />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
