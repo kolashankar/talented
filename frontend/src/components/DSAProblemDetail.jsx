@@ -630,6 +630,7 @@ const DSAProblemDetail = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
