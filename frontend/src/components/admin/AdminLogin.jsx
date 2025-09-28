@@ -99,8 +99,8 @@ const AdminLogin = () => {
             </Button>
             
             <div className="text-center text-sm text-gray-500 mt-4">
-              <p>Default credentials:</p>
-              <p className="font-mono text-xs">admin / admin123</p>
+              <p>Use admin credentials:</p>
+              <p className="font-mono text-xs">kolashankar113@gmail.com / Shankar@113</p>
             </div>
           </form>
         </CardContent>
