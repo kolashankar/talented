@@ -21,17 +21,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [adminToken, setAdminToken] = useState(localStorage.getItem("admin_token"));
 
-  // Set up axios interceptors for tokens
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else if (adminToken) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${adminToken}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [token, adminToken]);
-
   // Check if user is authenticated on app load
   useEffect(() => {
     const checkAuth = async () => {
