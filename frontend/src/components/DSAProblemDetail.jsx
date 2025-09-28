@@ -395,9 +395,22 @@ const DSAProblemDetail = () => {
                   {hints.length > 0 ? (
                     <div className="space-y-3">
                       {hints.map((hint, index) => (
-                        <div key={index} className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-                          <div className="font-medium text-yellow-800 mb-1">Hint {index + 1}</div>
-                          <div className="text-yellow-700">{hint}</div>
+                        <div key={index} className="border rounded-lg">
+                          <button
+                            onClick={() => toggleHint(index)}
+                            className="w-full p-4 text-left hover:bg-gray-50 border-b flex items-center justify-between"
+                          >
+                            <span className="font-medium text-gray-800">Hint {index + 1}</span>
+                            <span className="text-blue-600">
+                              {showHints.includes(index) ? '🔽' : '▶️'} 
+                              {showHints.includes(index) ? 'Hide' : 'Show'}
+                            </span>
+                          </button>
+                          {showHints.includes(index) && (
+                            <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                              <div className="text-yellow-700">{hint}</div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
