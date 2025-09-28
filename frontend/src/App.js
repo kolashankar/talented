@@ -26,6 +26,9 @@ import DSACorner from "./components/DSACorner";
 import DSAProblemDetail from "./components/DSAProblemDetail";
 import UserLogin from "./components/UserLogin";
 import UserRegister from "./components/UserRegister";
+import StaticPage from "./components/StaticPage";
+import ContactPage from "./components/ContactPage";
+import CompanyProfile from "./components/CompanyProfile";
 
 function App() {
   return (
