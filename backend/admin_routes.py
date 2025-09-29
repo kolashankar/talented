@@ -11,6 +11,7 @@ from database import get_database
 from auth import get_current_active_admin, AdminUser
 from datetime import datetime
 import logging
+from expiration_service import check_expired_content
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,29 @@ async def create_job(job_data: JobCreate, current_admin: AdminUser = Depends(get
     try:
         db = await get_database()
         
-        job = Job(**job_data.dict(), created_by=current_admin.username)
+        # Process the job data
+        job_dict = job_data.dict()
+        
+        # Handle skills field mapping
+        if job_dict.get('skills') and not job_dict.get('skills_required'):
+            job_dict['skills_required'] = job_dict['skills']
+        elif not job_dict.get('skills') and job_dict.get('skills_required'):
+            job_dict['skills'] = job_dict['skills_required']
+        
+        # Set default duration_months if duration is provided
+        if job_dict.get('duration') and not job_dict.get('duration_months'):
+            try:
+                # Try to extract months from duration string
+                duration_str = job_dict['duration'].lower()
+                if 'month' in duration_str:
+                    import re
+                    months = re.findall(r'\d+', duration_str)
+                    if months:
+                        job_dict['duration_months'] = int(months[0])
+            except:
+                pass
+        
+        job = Job(**job_dict, created_by=current_admin.username)
         job_dict = job.dict()
         
         result = await db.jobs.insert_one(job_dict)
@@ -132,7 +155,31 @@ async def create_internship(internship_data: InternshipCreate, current_admin: Ad
     try:
         db = await get_database()
         
-        internship = Internship(**internship_data.dict(), created_by=current_admin.username)
+        # Process the internship data
+        internship_dict = internship_data.dict()
+        
+        # Handle skills field mapping
+        if internship_dict.get('skills') and not internship_dict.get('skills_required'):
+            internship_dict['skills_required'] = internship_dict['skills']
+        elif not internship_dict.get('skills') and internship_dict.get('skills_required'):
+            internship_dict['skills'] = internship_dict['skills_required']
+        
+        # Set default duration_months if duration is provided
+        if internship_dict.get('duration') and not internship_dict.get('duration_months'):
+            try:
+                # Try to extract months from duration string
+                duration_str = internship_dict['duration'].lower()
+                if 'month' in duration_str:
+                    import re
+                    months = re.findall(r'\d+', duration_str)
+                    if months:
+                        internship_dict['duration_months'] = int(months[0])
+                else:
+                    internship_dict['duration_months'] = 3  # Default to 3 months
+            except:
+                internship_dict['duration_months'] = 3  # Default to 3 months
+        
+        internship = Internship(**internship_dict, created_by=current_admin.username)
         internship_dict = internship.dict()
         
         result = await db.internships.insert_one(internship_dict)
@@ -227,7 +274,19 @@ async def create_article(article_data: ArticleCreate, current_admin: AdminUser =
         if existing_article:
             raise HTTPException(status_code=400, detail="Article with this slug already exists")
         
-        article = Article(**article_data.dict(), created_by=current_admin.username)
+        # Process the article data
+        article_dict = article_data.dict()
+        
+        # Set default author if not provided
+        if not article_dict.get('author'):
+            article_dict['author'] = current_admin.username
+        
+        # Set default excerpt if not provided
+        if not article_dict.get('excerpt') and article_dict.get('content'):
+            # Create excerpt from first 150 characters of content
+            article_dict['excerpt'] = article_dict['content'][:150] + "..." if len(article_dict['content']) > 150 else article_dict['content']
+        
+        article = Article(**article_dict, created_by=current_admin.username)
         article_dict = article.dict()
         
         result = await db.articles.insert_one(article_dict)

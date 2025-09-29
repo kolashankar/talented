@@ -1,12 +1,9 @@
+
 import asyncio
 import json
 from typing import Dict, Any, Optional
 from datetime import datetime
-<<<<<<< HEAD
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-=======
 import google.generativeai as genai
->>>>>>> 54e658b (changes made)
 from models import (
     AIContentRequest, AIContentResponse, ResumeAnalysisRequest, ResumeAnalysisResponse,
     ResumeParseRequest, ResumeParseResponse, PortfolioGenerateRequest, Portfolio,
@@ -22,51 +19,28 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
-<<<<<<< HEAD
-        self.api_key = os.getenv("EMERGENT_LLM_KEY")
-        if not self.api_key:
-            raise ValueError("EMERGENT_LLM_KEY not found in environment variables")
-    
-    def _get_chat_instance(self, system_message: str, session_id: str = None) -> LlmChat:
-        """Initialize LLM chat instance"""
-        if not session_id:
-            session_id = f"session_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
-        chat = LlmChat(
-            api_key=self.api_key,
-            session_id=session_id,
-            system_message=system_message
-        ).with_model("openai", "gpt-4o-mini")
-        
-        return chat
-=======
         self.api_key = os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
-    
-    async def _generate_content(self, system_message: str, user_prompt: str) -> str:
-        """Generate content using Gemini API"""
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
+
+    async def _generate_content(self, system_prompt: str, user_prompt: str) -> str:
+        """Generate content using Gemini AI"""
         try:
-            # Combine system message and user prompt
-            full_prompt = f"{system_message}\n\n{user_prompt}"
-            
-            # Generate content
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                full_prompt
-            )
-            
+            # Combine system and user prompts for Gemini
+            full_prompt = f"""System Instructions: {system_prompt}
+
+User Request: {user_prompt}"""
+
+            response = self.model.generate_content(full_prompt)
             return response.text
-            
         except Exception as e:
             logger.error(f"Error generating content with Gemini: {str(e)}")
             raise Exception(f"Failed to generate content: {str(e)}")
->>>>>>> 54e658b (changes made)
-    
+
     async def generate_job_content(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate job posting content using AI"""
         system_message = """
@@ -85,13 +59,8 @@ You are an expert HR professional and job posting writer. Generate comprehensive
 
 Return your response as a valid JSON object only, no additional text.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate a job posting based on: {prompt}
 
@@ -99,33 +68,25 @@ Generate a job posting based on: {prompt}
 
 Return as JSON with keys: title, company, description, requirements, responsibilities, location, salary_min, salary_max, skills_required, benefits, tags, job_type, experience_level
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            content = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             content = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
             return content
-            
+
         except Exception as e:
             logger.error(f"Error generating job content: {str(e)}")
             raise Exception(f"Failed to generate job content: {str(e)}")
-    
+
     async def generate_internship_content(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate internship posting content using AI"""
         system_message = """
@@ -145,13 +106,8 @@ You are an expert HR professional specializing in internship programs. Generate 
 
 Return your response as a valid JSON object only, no additional text.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate an internship posting based on: {prompt}
 
@@ -159,33 +115,25 @@ Generate an internship posting based on: {prompt}
 
 Return as JSON with keys: title, company, description, requirements, responsibilities, location, stipend, duration_months, skills_required, benefits, tags
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            content = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             content = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
             return content
-            
+
         except Exception as e:
             logger.error(f"Error generating internship content: {str(e)}")
             raise Exception(f"Failed to generate internship content: {str(e)}")
-    
+
     async def generate_article_content(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate article content using AI"""
         system_message = """
@@ -205,13 +153,8 @@ Write engaging, informative, and actionable content that helps tech freshers in 
 
 Return your response as a valid JSON object only, no additional text.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate an article based on: {prompt}
 
@@ -219,33 +162,25 @@ Generate an article based on: {prompt}
 
 Return as JSON with keys: title, slug, excerpt, content, category, tags, reading_time_minutes, seo_meta_title, seo_meta_description
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            content = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             content = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
             return content
-            
+
         except Exception as e:
             logger.error(f"Error generating article content: {str(e)}")
             raise Exception(f"Failed to generate article content: {str(e)}")
-    
+
     async def generate_roadmap_content(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate roadmap content using AI"""
         system_message = """
@@ -270,13 +205,8 @@ Create practical, actionable roadmaps that guide learners step-by-step.
 
 Return your response as a valid JSON object only, no additional text.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate a learning roadmap based on: {prompt}
 
@@ -285,33 +215,25 @@ Generate a learning roadmap based on: {prompt}
 Return as JSON with keys: title, slug, description, difficulty_level, estimated_completion_time, prerequisites, steps, tags
 Steps should be an array of objects with keys: title, description, resources, estimated_duration, prerequisites, order
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            content = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             content = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
             return content
-            
+
         except Exception as e:
             logger.error(f"Error generating roadmap content: {str(e)}")
             raise Exception(f"Failed to generate roadmap content: {str(e)}")
-    
+
     async def analyze_resume(self, request: ResumeAnalysisRequest) -> ResumeAnalysisResponse:
         """Analyze resume and provide ATS feedback"""
         system_message = """
@@ -332,13 +254,8 @@ Provide constructive, actionable feedback that helps candidates improve their re
 
 Return your response as a valid JSON object only, no additional text.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Analyze this resume:
 
@@ -360,36 +277,28 @@ Provide comprehensive ATS analysis as JSON with keys:
 - formatting_score (float 0-100)
 - recommendations (array of priority recommendations)
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            analysis_data = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             analysis_data = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
+
             # Create ResumeAnalysisResponse object
             analysis_response = ResumeAnalysisResponse(**analysis_data)
-            
             return analysis_response
-            
+
         except Exception as e:
             logger.error(f"Error analyzing resume: {str(e)}")
             raise Exception(f"Failed to analyze resume: {str(e)}")
-    
+
     async def generate_content(self, request: AIContentRequest) -> AIContentResponse:
         """Generate content based on content type"""
         try:
@@ -403,18 +312,14 @@ Provide comprehensive ATS analysis as JSON with keys:
                 content = await self.generate_roadmap_content(request.prompt, request.additional_context)
             else:
                 raise ValueError(f"Unsupported content type: {request.content_type}")
-            
+
             response = AIContentResponse(
                 content=content,
-<<<<<<< HEAD
-                tokens_used=None  # We can add token counting later if needed
-=======
-                tokens_used=None  # Gemini doesn't provide token count in free tier
->>>>>>> 54e658b (changes made)
+                tokens_used=None  # Gemini doesn't expose token usage in the free tier
             )
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Error in generate_content: {str(e)}")
             raise
@@ -476,13 +381,8 @@ Extract all available information accurately. If information is missing, use emp
 Ensure the parsing_confidence is a realistic score between 0 and 1.
 Return valid JSON only, no additional text.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Parse this resume text into structured JSON:
 
@@ -490,27 +390,20 @@ Parse this resume text into structured JSON:
 
 Return the parsed data as JSON matching the specified format exactly.
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            parsed_data = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             parsed_data = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
+
             # Extract the main data and metadata
             parsed_resume = ParsedResumeData(
                 personal_details=PersonalDetails(**parsed_data["personal_details"]),
@@ -521,20 +414,20 @@ Return the parsed data as JSON matching the specified format exactly.
                 certifications=parsed_data.get("certifications", []),
                 achievements=parsed_data.get("achievements", [])
             )
-            
+
             response_obj = ResumeParseResponse(
                 parsed_data=parsed_resume,
                 parsing_confidence=parsed_data.get("parsing_confidence", 0.8),
                 suggestions=parsed_data.get("suggestions", []),
                 missing_sections=parsed_data.get("missing_sections", [])
             )
-            
+
             return response_obj
-            
+
         except Exception as e:
             logger.error(f"Error parsing resume: {str(e)}")
             raise Exception(f"Failed to parse resume: {str(e)}")
-    
+
     async def generate_portfolio(self, request: PortfolioGenerateRequest) -> dict:
         """Generate portfolio website content"""
         system_message = """
@@ -557,17 +450,12 @@ Make sure the website is:
 
 Use the provided template theme and colors. Include all relevant sections based on the available data.
 """
-        
+
         try:
-<<<<<<< HEAD
-            chat = self._get_chat_instance(system_message)
-            
-=======
->>>>>>> 54e658b (changes made)
             # Prepare the data for the prompt
             resume_data = request.resume_data
             template_info = f"Template ID: {request.template_id}"
-            
+
             full_prompt = f"""
 Generate a complete portfolio website based on:
 
@@ -588,40 +476,32 @@ Additional Preferences: {request.additional_preferences}
 Generate a complete, modern, responsive portfolio website with proper HTML structure, CSS styling, and content organization.
 Return as JSON with content, html, css keys.
 """
-            
-<<<<<<< HEAD
-            user_message = UserMessage(text=full_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parse the JSON response
-            portfolio_content = json.loads(response)
-=======
+
             response_text = await self._generate_content(system_message, full_prompt)
             
             # Clean the response to extract JSON
             response_text = response_text.strip()
-            if response_text.startswith("```json"):
+            if response_text.startswith('```json'):
                 response_text = response_text[7:]
-            if response_text.endswith("```"):
+            if response_text.endswith('```'):
                 response_text = response_text[:-3]
-            
+            response_text = response_text.strip()
+
             # Parse the JSON response
             portfolio_content = json.loads(response_text)
->>>>>>> 54e658b (changes made)
-            
             return portfolio_content
-            
+
         except Exception as e:
             logger.error(f"Error generating portfolio: {str(e)}")
             raise Exception(f"Failed to generate portfolio: {str(e)}")
-    
+
     async def render_portfolio_html(self, portfolio: Portfolio) -> str:
         """Render portfolio as HTML for viewing"""
         try:
             # This would typically render based on the stored portfolio data
             # For now, return a simple HTML structure
             personal = portfolio.resume_data.personal_details
-            
+
             html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -691,17 +571,17 @@ Return as JSON with content, html, css keys.
                 <h2>Skills</h2>
                 {"".join([f'<span class="skill-tag">{skill}</span>' for skill in portfolio.resume_data.skills])}
             </div>
-            
+
             <div class="section">
                 <h2>Experience</h2>
                 {"".join([f'<div class="project"><h3>{exp.title} at {exp.company}</h3><p>{exp.duration}</p><ul>{"".join([f"<li>{desc}</li>" for desc in exp.description])}</ul></div>' for exp in portfolio.resume_data.experience])}
             </div>
-            
+
             <div class="section">
                 <h2>Projects</h2>
                 {"".join([f'<div class="project"><h3>{proj.name}</h3><p>{proj.description}</p><p><strong>Technologies:</strong> {", ".join(proj.technologies)}</p></div>' for proj in portfolio.resume_data.projects])}
             </div>
-            
+
             <div class="section">
                 <h2>Education</h2>
                 {"".join([f'<div class="project"><h3>{edu.degree}</h3><p>{edu.institution} {f"({edu.year})" if edu.year else ""}</p></div>' for edu in portfolio.resume_data.education])}
@@ -712,7 +592,7 @@ Return as JSON with content, html, css keys.
 </html>
 """
             return html
-            
+
         except Exception as e:
             logger.error(f"Error rendering portfolio HTML: {str(e)}")
             return "<h1>Error rendering portfolio</h1>"

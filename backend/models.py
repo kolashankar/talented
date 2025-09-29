@@ -40,13 +40,18 @@ class JobCreate(BaseModel):
     salary_min: Optional[int] = None
     salary_max: Optional[int] = None
     salary_currency: str = "INR"
+    salary_range: Optional[str] = None
     job_type: JobType
     experience_level: ExperienceLevel
     skills_required: List[str] = []
+    skills: List[str] = []  # Alternative field name for compatibility
     benefits: List[str] = []
     application_url: Optional[str] = None
     application_deadline: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
     is_remote: bool = False
+    is_featured: bool = False
+    is_active: bool = True
     tags: List[str] = []
 
 class Job(BaseDocument, JobCreate):
@@ -63,13 +68,18 @@ class JobUpdate(BaseModel):
     location: Optional[str] = None
     salary_min: Optional[int] = None
     salary_max: Optional[int] = None
+    salary_range: Optional[str] = None
     job_type: Optional[JobType] = None
     experience_level: Optional[ExperienceLevel] = None
     skills_required: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
     benefits: Optional[List[str]] = None
     application_url: Optional[str] = None
     application_deadline: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
     is_remote: Optional[bool] = None
+    is_featured: Optional[bool] = None
+    is_active: Optional[bool] = None
     tags: Optional[List[str]] = None
     status: Optional[ContentStatus] = None
 
@@ -83,12 +93,18 @@ class InternshipCreate(BaseModel):
     responsibilities: List[str] = []
     location: str
     stipend: Optional[int] = None
-    duration_months: int
+    duration: Optional[str] = None  # For compatibility with frontend
+    duration_months: Optional[int] = None
     skills_required: List[str] = []
+    skills: List[str] = []  # Alternative field name for compatibility
     benefits: List[str] = []
     application_url: Optional[str] = None
     application_deadline: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
     is_remote: bool = False
+    is_paid: bool = False
+    is_featured: bool = False
+    is_active: bool = True
     tags: List[str] = []
 
 class Internship(BaseDocument, InternshipCreate):
@@ -104,12 +120,18 @@ class InternshipUpdate(BaseModel):
     responsibilities: Optional[List[str]] = None
     location: Optional[str] = None
     stipend: Optional[int] = None
+    duration: Optional[str] = None
     duration_months: Optional[int] = None
     skills_required: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
     benefits: Optional[List[str]] = None
     application_url: Optional[str] = None
     application_deadline: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
     is_remote: Optional[bool] = None
+    is_paid: Optional[bool] = None
+    is_featured: Optional[bool] = None
+    is_active: Optional[bool] = None
     tags: Optional[List[str]] = None
     status: Optional[ContentStatus] = None
 
@@ -117,14 +139,18 @@ class InternshipUpdate(BaseModel):
 class ArticleCreate(BaseModel):
     title: str
     slug: str
-    excerpt: str
+    excerpt: Optional[str] = None
     content: str
+    author: Optional[str] = None
     featured_image: Optional[str] = None
     category: str
     tags: List[str] = []
     reading_time_minutes: Optional[int] = None
     seo_meta_title: Optional[str] = None
     seo_meta_description: Optional[str] = None
+    is_published: bool = False
+    is_featured: bool = False
+    expiration_date: Optional[datetime] = None
 
 class Article(BaseDocument, ArticleCreate):
     views: int = 0
@@ -135,12 +161,16 @@ class ArticleUpdate(BaseModel):
     slug: Optional[str] = None
     excerpt: Optional[str] = None
     content: Optional[str] = None
+    author: Optional[str] = None
     featured_image: Optional[str] = None
     category: Optional[str] = None
     tags: Optional[List[str]] = None
     reading_time_minutes: Optional[int] = None
     seo_meta_title: Optional[str] = None
     seo_meta_description: Optional[str] = None
+    is_published: Optional[bool] = None
+    is_featured: Optional[bool] = None
+    expiration_date: Optional[datetime] = None
     status: Optional[ContentStatus] = None
 
 # Roadmap Models

@@ -31,6 +31,7 @@ const JobManagement = () => {
     responsibilities: "",
     skills: "",
     application_url: "",
+    expiration_date: "",
     is_featured: false,
     is_active: true
   });
@@ -63,7 +64,8 @@ const JobManagement = () => {
         ...formData,
         skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
         requirements: formData.requirements.split('\n').filter(req => req.trim()),
-        responsibilities: formData.responsibilities.split('\n').filter(resp => resp.trim())
+        responsibilities: formData.responsibilities.split('\n').filter(resp => resp.trim()),
+        expiration_date: formData.expiration_date ? new Date(formData.expiration_date).toISOString() : null
       };
 
       if (selectedJob) {
@@ -95,6 +97,14 @@ const JobManagement = () => {
 
   const handleEdit = (job) => {
     setSelectedJob(job);
+    
+    // Format expiration_date for datetime-local input
+    let formattedExpirationDate = '';
+    if (job.expiration_date) {
+      const date = new Date(job.expiration_date);
+      formattedExpirationDate = date.toISOString().slice(0, 16);
+    }
+    
     setFormData({
       title: job.title,
       company: job.company,
@@ -107,6 +117,7 @@ const JobManagement = () => {
       responsibilities: job.responsibilities?.join('\n') || '',
       skills: job.skills?.join(', ') || '',
       application_url: job.application_url,
+      expiration_date: formattedExpirationDate,
       is_featured: job.is_featured,
       is_active: job.is_active
     });
@@ -146,6 +157,7 @@ const JobManagement = () => {
       responsibilities: "",
       skills: "",
       application_url: "",
+      expiration_date: "",
       is_featured: false,
       is_active: true
     });
@@ -306,6 +318,17 @@ const JobManagement = () => {
                   onChange={(e) => setFormData({...formData, application_url: e.target.value})}
                   placeholder="https://company.com/apply"
                 />
+              </div>
+              
+              <div>
+                <Label htmlFor="expiration_date">Expiration Date (Auto-delete)</Label>
+                <Input
+                  id="expiration_date"
+                  type="datetime-local"
+                  value={formData.expiration_date || ''}
+                  onChange={(e) => setFormData({...formData, expiration_date: e.target.value})}
+                />
+                <p className="text-sm text-gray-500 mt-1">Job will be automatically deleted from database on this date</p>
               </div>
               
               <div className="flex items-center space-x-4">

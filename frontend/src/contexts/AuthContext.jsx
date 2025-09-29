@@ -122,6 +122,10 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🔐 Admin login attempt:", { username, API });
       
+      // Clear any existing tokens before login
+      localStorage.removeItem("admin_token");
+      delete axios.defaults.headers.common['Authorization'];
+      
       const response = await axios.post(`${API}/auth/login`, {
         username,
         password
@@ -130,6 +134,9 @@ export const AuthProvider = ({ children }) => {
       console.log("✅ Login response:", response.status, response.data);
 
       const { access_token, user: userData } = response.data;
+      
+      // Set the token in axios headers immediately
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
       localStorage.setItem("admin_token", access_token);
       setAdminToken(access_token);
@@ -145,6 +152,12 @@ export const AuthProvider = ({ children }) => {
         status: error.response?.status,
         url: error.config?.url
       });
+      
+      // Clear any partial state on error
+      localStorage.removeItem("admin_token");
+      delete axios.defaults.headers.common['Authorization'];
+      setAdminToken(null);
+      setAdminUser(null);
       
       return { 
         success: false, 

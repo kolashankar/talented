@@ -30,6 +30,7 @@ const InternshipManagement = () => {
     responsibilities: "",
     skills: "",
     application_url: "",
+    expiration_date: "",
     is_paid: false,
     is_remote: false,
     is_featured: false,
@@ -64,7 +65,8 @@ const InternshipManagement = () => {
         ...formData,
         skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
         requirements: formData.requirements.split('\n').filter(req => req.trim()),
-        responsibilities: formData.responsibilities.split('\n').filter(resp => resp.trim())
+        responsibilities: formData.responsibilities.split('\n').filter(resp => resp.trim()),
+        expiration_date: formData.expiration_date ? new Date(formData.expiration_date).toISOString() : null
       };
 
       if (selectedInternship) {
@@ -246,6 +248,17 @@ const InternshipManagement = () => {
                     onChange={(e) => setFormData({...formData, application_url: e.target.value})}
                     placeholder="https://company.com/apply"
                   />
+                </div>
+                
+                <div>
+                  <Label htmlFor="expiration_date">Expiration Date (Auto-delete)</Label>
+                  <Input
+                    id="expiration_date"
+                    type="datetime-local"
+                    value={formData.expiration_date || ''}
+                    onChange={(e) => setFormData({...formData, expiration_date: e.target.value})}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Internship will be automatically deleted from database on this date</p>
                 </div>
               </div>
               

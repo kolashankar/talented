@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from models import (
     AIContentRequest, AIContentResponse, 
     ResumeAnalysisRequest, ResumeAnalysisResponse,
@@ -27,36 +27,30 @@ async def generate_content(
         raise HTTPException(status_code=500, detail=f"Failed to generate content: {str(e)}")
 
 @ai_router.post("/generate-job")
-async def generate_job_content(
-    prompt: str,
-    current_admin: AdminUser = Depends(get_current_active_admin)
-):
-    """Generate job posting content using AI"""
+async def generate_job_content(prompt: str = Query(...)):
+    """Generate job content using AI"""
     try:
         content = await ai_service.generate_job_content(prompt)
-        return {
-            "content": content,
-            "message": "Job content generated successfully"
-        }
+        return AIContentResponse(
+            content=content,
+            tokens_used=None  # Gemini doesn't expose token usage in free tier
+        )
     except Exception as e:
         logger.error(f"Error generating job content: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate job content: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
 
 @ai_router.post("/generate-internship")
-async def generate_internship_content(
-    prompt: str,
-    current_admin: AdminUser = Depends(get_current_active_admin)
-):
-    """Generate internship posting content using AI"""
+async def generate_internship_content(prompt: str = Query(...)):
+    """Generate internship content using AI"""
     try:
         content = await ai_service.generate_internship_content(prompt)
-        return {
-            "content": content,
-            "message": "Internship content generated successfully"
-        }
+        return AIContentResponse(
+            content=content,
+            tokens_used=None  # Gemini doesn't expose token usage in free tier
+        )
     except Exception as e:
         logger.error(f"Error generating internship content: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate internship content: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
 
 @ai_router.post("/generate-article")
 async def generate_article_content(
