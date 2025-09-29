@@ -13,7 +13,11 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 
 # Test configuration
+<<<<<<< HEAD
 BACKEND_URL = "https://fix-render-loop.preview.emergentagent.com/api"
+=======
+BACKEND_URL = "http://localhost:8000/api"
+>>>>>>> 54e658b (changes made)
 ADMIN_EMAIL = "kolashankar113@gmail.com"
 ADMIN_PASSWORD = "Shankar@113"
 

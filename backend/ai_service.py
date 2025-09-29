@@ -2,7 +2,11 @@ import asyncio
 import json
 from typing import Dict, Any, Optional
 from datetime import datetime
+<<<<<<< HEAD
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+=======
+import google.generativeai as genai
+>>>>>>> 54e658b (changes made)
 from models import (
     AIContentRequest, AIContentResponse, ResumeAnalysisRequest, ResumeAnalysisResponse,
     ResumeParseRequest, ResumeParseResponse, PortfolioGenerateRequest, Portfolio,
@@ -18,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
+<<<<<<< HEAD
         self.api_key = os.getenv("EMERGENT_LLM_KEY")
         if not self.api_key:
             raise ValueError("EMERGENT_LLM_KEY not found in environment variables")
@@ -34,6 +39,33 @@ class AIService:
         ).with_model("openai", "gpt-4o-mini")
         
         return chat
+=======
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        if not self.api_key:
+            raise ValueError("GEMINI_API_KEY not found in environment variables")
+        
+        # Configure Gemini
+        genai.configure(api_key=self.api_key)
+        self.model = genai.GenerativeModel('gemini-pro')
+    
+    async def _generate_content(self, system_message: str, user_prompt: str) -> str:
+        """Generate content using Gemini API"""
+        try:
+            # Combine system message and user prompt
+            full_prompt = f"{system_message}\n\n{user_prompt}"
+            
+            # Generate content
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                full_prompt
+            )
+            
+            return response.text
+            
+        except Exception as e:
+            logger.error(f"Error generating content with Gemini: {str(e)}")
+            raise Exception(f"Failed to generate content: {str(e)}")
+>>>>>>> 54e658b (changes made)
     
     async def generate_job_content(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate job posting content using AI"""
@@ -55,8 +87,11 @@ Return your response as a valid JSON object only, no additional text.
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate a job posting based on: {prompt}
 
@@ -65,11 +100,25 @@ Generate a job posting based on: {prompt}
 Return as JSON with keys: title, company, description, requirements, responsibilities, location, salary_min, salary_max, skills_required, benefits, tags, job_type, experience_level
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             content = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            content = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             return content
             
@@ -98,8 +147,11 @@ Return your response as a valid JSON object only, no additional text.
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate an internship posting based on: {prompt}
 
@@ -108,11 +160,25 @@ Generate an internship posting based on: {prompt}
 Return as JSON with keys: title, company, description, requirements, responsibilities, location, stipend, duration_months, skills_required, benefits, tags
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             content = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            content = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             return content
             
@@ -141,8 +207,11 @@ Return your response as a valid JSON object only, no additional text.
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate an article based on: {prompt}
 
@@ -151,11 +220,25 @@ Generate an article based on: {prompt}
 Return as JSON with keys: title, slug, excerpt, content, category, tags, reading_time_minutes, seo_meta_title, seo_meta_description
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             content = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            content = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             return content
             
@@ -189,8 +272,11 @@ Return your response as a valid JSON object only, no additional text.
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Generate a learning roadmap based on: {prompt}
 
@@ -200,11 +286,25 @@ Return as JSON with keys: title, slug, description, difficulty_level, estimated_
 Steps should be an array of objects with keys: title, description, resources, estimated_duration, prerequisites, order
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             content = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            content = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             return content
             
@@ -234,8 +334,11 @@ Return your response as a valid JSON object only, no additional text.
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Analyze this resume:
 
@@ -258,11 +361,25 @@ Provide comprehensive ATS analysis as JSON with keys:
 - recommendations (array of priority recommendations)
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             analysis_data = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            analysis_data = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             # Create ResumeAnalysisResponse object
             analysis_response = ResumeAnalysisResponse(**analysis_data)
@@ -289,7 +406,11 @@ Provide comprehensive ATS analysis as JSON with keys:
             
             response = AIContentResponse(
                 content=content,
+<<<<<<< HEAD
                 tokens_used=None  # We can add token counting later if needed
+=======
+                tokens_used=None  # Gemini doesn't provide token count in free tier
+>>>>>>> 54e658b (changes made)
             )
             
             return response
@@ -357,8 +478,11 @@ Return valid JSON only, no additional text.
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             full_prompt = f"""
 Parse this resume text into structured JSON:
 
@@ -367,11 +491,25 @@ Parse this resume text into structured JSON:
 Return the parsed data as JSON matching the specified format exactly.
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             parsed_data = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            parsed_data = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             # Extract the main data and metadata
             parsed_resume = ParsedResumeData(
@@ -421,8 +559,11 @@ Use the provided template theme and colors. Include all relevant sections based 
 """
         
         try:
+<<<<<<< HEAD
             chat = self._get_chat_instance(system_message)
             
+=======
+>>>>>>> 54e658b (changes made)
             # Prepare the data for the prompt
             resume_data = request.resume_data
             template_info = f"Template ID: {request.template_id}"
@@ -448,11 +589,25 @@ Generate a complete, modern, responsive portfolio website with proper HTML struc
 Return as JSON with content, html, css keys.
 """
             
+<<<<<<< HEAD
             user_message = UserMessage(text=full_prompt)
             response = await chat.send_message(user_message)
             
             # Parse the JSON response
             portfolio_content = json.loads(response)
+=======
+            response_text = await self._generate_content(system_message, full_prompt)
+            
+            # Clean the response to extract JSON
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            
+            # Parse the JSON response
+            portfolio_content = json.loads(response_text)
+>>>>>>> 54e658b (changes made)
             
             return portfolio_content
             

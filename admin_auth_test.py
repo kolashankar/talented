@@ -7,7 +7,11 @@ import asyncio
 import aiohttp
 import json
 
+<<<<<<< HEAD
 BACKEND_URL = "https://fix-render-loop.preview.emergentagent.com/api"
+=======
+BACKEND_URL = "http://localhost:8000/api"
+>>>>>>> 54e658b (changes made)
 
 async def test_admin_credentials():
     """Test different admin credential combinations"""

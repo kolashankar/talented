@@ -12,7 +12,11 @@
         
         async function testAPI() {
             // Get the backend URL from environment
+<<<<<<< HEAD
             const backendUrl = 'https://fix-render-loop.preview.emergentagent.com';
+=======
+            const backendUrl = 'http://localhost:8000';
+>>>>>>> 54e658b (changes made)
             const apiUrl = `${backendUrl}/api/auth/login`;
             
             results.innerHTML += `<p><strong>Testing URL:</strong> ${apiUrl}</p>`;
@@ -46,7 +50,11 @@
                 results.innerHTML += `<br><p><strong>Testing local backend...</strong></p>`;
                 
                 try {
+<<<<<<< HEAD
                     const localUrl = 'http://localhost:8001/api/auth/login';
+=======
+                    const localUrl = 'http://localhost:8000/api/auth/login';
+>>>>>>> 54e658b (changes made)
                     const response2 = await fetch(localUrl, {
                         method: 'POST',
                         headers: {

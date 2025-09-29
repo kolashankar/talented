@@ -7,7 +7,11 @@ import json
 import os
 
 # Backend URL
+<<<<<<< HEAD
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+=======
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8000')
+>>>>>>> 54e658b (changes made)
 API_BASE = f"{BACKEND_URL}/api"
 
 def test_admin_login(username, password):
