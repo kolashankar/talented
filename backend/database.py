@@ -1,7 +1,10 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import IndexModel, ASCENDING, DESCENDING, TEXT
 import os
+import logging
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -13,6 +16,9 @@ class Database:
 database = Database()
 
 async def get_database():
+    if database.db is None:
+        logger.error("Database not initialized")
+        raise Exception("Database connection not available")
     return database.db
 
 async def connect_to_mongo():

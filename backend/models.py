@@ -193,6 +193,7 @@ class RoadmapCreate(BaseModel):
     tags: List[str] = []
     steps: List[RoadmapStep] = []
     prerequisites: List[str] = []
+    expiration_date: Optional[datetime] = None
 
 class Roadmap(BaseDocument, RoadmapCreate):
     views: int = 0

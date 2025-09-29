@@ -11,6 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useToast } from "../ui/use-toast";
 import { adminApi } from "../../services/api";
 
+// Import apiClient for direct API calls
+import axios from "axios";
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const apiClient = axios.create({
+  baseURL: `${BACKEND_URL}/api`,
+  timeout: 30000,
+});
+
+// Add auth interceptor
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('adminToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const InternshipManagement = () => {
   const [internships, setInternships] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,7 +77,20 @@ const InternshipManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     try {
+      // Validate required fields
+      if (!formData.title?.trim()) {
+        throw new Error('Internship title is required');
+      }
+      if (!formData.company?.trim()) {
+        throw new Error('Company name is required');
+      }
+      if (!formData.description?.trim()) {
+        throw new Error('Internship description is required');
+      }
+
       const internshipData = {
         ...formData,
         skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
@@ -72,27 +102,42 @@ const InternshipManagement = () => {
       if (selectedInternship) {
         await adminApi.updateInternship(selectedInternship.id, internshipData);
         toast({
-          title: "Success",
-          description: "Internship updated successfully"
+          title: "Success!",
+          description: "Internship updated successfully and saved to database"
         });
       } else {
         await adminApi.createInternship(internshipData);
         toast({
-          title: "Success",
-          description: "Internship created successfully"
+          title: "Success!",
+          description: "Internship created successfully and saved to database"
         });
       }
       
       setIsDialogOpen(false);
       resetForm();
-      fetchInternships();
+      await fetchInternships(); // Refresh the list
     } catch (error) {
       console.error("Error saving internship:", error);
+      
+      let errorMessage = "Failed to save internship. Please try again.";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again.";
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || "Invalid internship data. Please check all fields.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again in a moment.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to save internship",
+        title: "Save Failed",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -192,6 +237,111 @@ const InternshipManagement = () => {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* AI Agent Section */}
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">AI</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">AI Internship Generator</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="ai-prompt">Describe the internship you want to create</Label>
+                    <Textarea
+                      id="ai-prompt"
+                      placeholder="e.g., Summer internship for computer science students in web development, 3 months duration, mentorship provided, stipend included"
+                      rows={2}
+                      className="resize-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                      <Label htmlFor="ai-company">Company (optional)</Label>
+                      <Input
+                        id="ai-company"
+                        placeholder="Company name"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ai-location">Location (optional)</Label>
+                      <Input
+                        id="ai-location"
+                        placeholder="City, Country"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ai-duration">Duration (optional)</Label>
+                      <Input
+                        id="ai-duration"
+                        placeholder="e.g., 3 months"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    onClick={async () => {
+                      const promptElement = document.getElementById('ai-prompt');
+                      const companyElement = document.getElementById('ai-company');
+                      const locationElement = document.getElementById('ai-location');
+                      const durationElement = document.getElementById('ai-duration');
+                      
+                      const basePrompt = promptElement?.value || 'Generate an internship posting for students';
+                      const company = companyElement?.value || '';
+                      const location = locationElement?.value || '';
+                      const duration = durationElement?.value || '';
+                      
+                      let fullPrompt = basePrompt;
+                      if (company) fullPrompt += ` at ${company}`;
+                      if (location) fullPrompt += ` in ${location}`;
+                      if (duration) fullPrompt += ` for ${duration}`;
+                      
+                      try {
+                        const response = await apiClient.post(`/ai/generate-internship?prompt=${encodeURIComponent(fullPrompt)}`);
+                        const data = response.data;
+                        
+                        if (!data.content) {
+                          throw new Error('No content received from AI');
+                        }
+                        
+                        const content = data.content;
+                        setFormData({
+                          ...formData,
+                          title: content.title || formData.title,
+                          company: content.company || company || formData.company,
+                          description: content.description || formData.description,
+                          requirements: content.requirements?.join('\n') || formData.requirements,
+                          responsibilities: content.responsibilities?.join('\n') || formData.responsibilities,
+                          skills: content.skills_required?.join(', ') || formData.skills,
+                          location: content.location || location || formData.location,
+                          duration: content.duration || duration || formData.duration,
+                          stipend: content.stipend || formData.stipend
+                        });
+                        
+                        toast({
+                          title: "Success!",
+                          description: "Form auto-filled with AI-generated content. Review and modify as needed."
+                        });
+                      } catch (error) {
+                        console.error('AI Generation Error:', error);
+                        toast({
+                          title: "AI Generation Failed",
+                          description: error.message || "Please try again with a different prompt or check your connection.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
+                    🤖 Generate Internship with AI
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Internship Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="title">Internship Title</Label>
@@ -344,8 +494,15 @@ const InternshipManagement = () => {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {selectedInternship ? "Update Internship" : "Create Internship"}
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      {selectedInternship ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    selectedInternship ? "Update Internship" : "Create Internship"
+                  )}
                 </Button>
               </div>
             </form>

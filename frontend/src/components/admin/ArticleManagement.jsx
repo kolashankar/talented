@@ -11,6 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useToast } from "../ui/use-toast";
 import { adminApi } from "../../services/api";
 
+// Import apiClient for direct API calls
+import axios from "axios";
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const apiClient = axios.create({
+  baseURL: `${BACKEND_URL}/api`,
+  timeout: 30000,
+});
+
+// Add auth interceptor
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('adminToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const ArticleManagement = () => {
   const [articles, setArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,7 +87,20 @@ const ArticleManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     try {
+      // Validate required fields
+      if (!formData.title?.trim()) {
+        throw new Error('Article title is required');
+      }
+      if (!formData.content?.trim()) {
+        throw new Error('Article content is required');
+      }
+      if (!formData.author?.trim()) {
+        throw new Error('Author is required');
+      }
+
       const articleData = {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
@@ -79,27 +109,42 @@ const ArticleManagement = () => {
       if (selectedArticle) {
         await adminApi.updateArticle(selectedArticle.id, articleData);
         toast({
-          title: "Success",
-          description: "Article updated successfully"
+          title: "Success!",
+          description: "Article updated successfully and saved to database"
         });
       } else {
         await adminApi.createArticle(articleData);
         toast({
-          title: "Success",
-          description: "Article created successfully"
+          title: "Success!",
+          description: "Article created successfully and saved to database"
         });
       }
       
       setIsDialogOpen(false);
       resetForm();
-      fetchArticles();
+      await fetchArticles(); // Refresh the list
     } catch (error) {
       console.error("Error saving article:", error);
+      
+      let errorMessage = "Failed to save article. Please try again.";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again.";
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || "Invalid article data. Please check all fields.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again in a moment.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to save article",
+        title: "Save Failed",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -199,6 +244,109 @@ const ArticleManagement = () => {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* AI Agent Section */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">AI</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">AI Article Generator</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="ai-prompt">Describe the article you want to create</Label>
+                    <Textarea
+                      id="ai-prompt"
+                      placeholder="e.g., How to prepare for technical interviews in 2024, best practices for remote work, career transition from marketing to tech"
+                      rows={2}
+                      className="resize-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                      <Label htmlFor="ai-author">Author (optional)</Label>
+                      <Input
+                        id="ai-author"
+                        placeholder="Author name"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ai-category">Category</Label>
+                      <Input
+                        id="ai-category"
+                        placeholder="e.g., career-advice, technical, tutorials"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ai-length">Article Length</Label>
+                      <Input
+                        id="ai-length"
+                        placeholder="e.g., short, medium, long"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    onClick={async () => {
+                      const promptElement = document.getElementById('ai-prompt');
+                      const authorElement = document.getElementById('ai-author');
+                      
+                      const basePrompt = promptElement?.value || 'Generate a professional article about career development';
+                      const author = authorElement?.value || '';
+                      const categoryElement = document.getElementById('ai-category');
+                      const lengthElement = document.getElementById('ai-length');
+                      const category = categoryElement?.value || '';
+                      const length = lengthElement?.value || '';
+                      
+                      let fullPrompt = basePrompt;
+                      if (category) fullPrompt += ` in the ${category} category`;
+                      if (length) fullPrompt += ` with ${length} length`;
+                      if (author) fullPrompt += ` written by ${author}`;
+                      
+                      try {
+                        const response = await apiClient.post(`/ai/generate-article?prompt=${encodeURIComponent(fullPrompt)}`);
+                        const data = response.data;
+                        
+                        if (!data.content) {
+                          throw new Error('No content received from AI');
+                        }
+                        
+                        const content = data.content;
+                        setFormData({
+                          ...formData,
+                          title: content.title || formData.title,
+                          content: content.content || formData.content,
+                          excerpt: content.excerpt || formData.excerpt,
+                          author: content.author || author || formData.author,
+                          category: content.category || category || formData.category,
+                          tags: content.tags?.join(', ') || formData.tags,
+                          slug: content.slug || generateSlug(content.title || formData.title)
+                        });
+                        
+                        toast({
+                          title: "Success!",
+                          description: "Form auto-filled with AI-generated content. Review and modify as needed."
+                        });
+                      } catch (error) {
+                        console.error('AI Generation Error:', error);
+                        toast({
+                          title: "AI Generation Failed",
+                          description: error.message || "Please try again with a different prompt or check your connection.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
+                    🤖 Generate Article with AI
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Article Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="title">Article Title</Label>
@@ -312,8 +460,15 @@ const ArticleManagement = () => {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {selectedArticle ? "Update Article" : "Create Article"}
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      {selectedArticle ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    selectedArticle ? "Update Article" : "Create Article"
+                  )}
                 </Button>
               </div>
             </form>

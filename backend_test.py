@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 
 # Test configuration
-BACKEND_URL = "https://fix-render-loop.preview.emergentagent.com/api"
+BACKEND_URL = "https://job-portal-admin.preview.emergentagent.com/api"
 ADMIN_EMAIL = "kolashankar113@gmail.com"
 ADMIN_PASSWORD = "Shankar@113"
 

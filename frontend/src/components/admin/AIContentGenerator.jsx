@@ -7,7 +7,7 @@ import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useToast } from "../ui/use-toast";
-import { aiApi } from "../../services/api";
+import { aiApi, adminApi } from "../../services/api";
 
 const AIContentGenerator = () => {
   const [loading, setLoading] = useState(false);
@@ -22,6 +22,8 @@ const AIContentGenerator = () => {
   
   const [contentType, setContentType] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
+  const [bulkCount, setBulkCount] = useState(1);
+  const [autoSave, setAutoSave] = useState(false);
 
   const generateJobContent = async () => {
     if (!jobPrompt.trim()) {
@@ -35,12 +37,21 @@ const AIContentGenerator = () => {
 
     try {
       setLoading(true);
-      const response = await aiApi.generateJobContent(jobPrompt);
-      setGeneratedContent(response);
-      toast({
-        title: "Success",
-        description: "Job content generated successfully"
-      });
+      const response = await aiApi.aiGenerateJob(jobPrompt);
+      setGeneratedContent(response.content);
+      
+      if (autoSave) {
+        await adminApi.createJob(response.content);
+        toast({
+          title: "Success",
+          description: "Job content generated and saved successfully"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Job content generated successfully"
+        });
+      }
     } catch (error) {
       console.error("Error generating job content:", error);
       toast({
@@ -65,12 +76,21 @@ const AIContentGenerator = () => {
 
     try {
       setLoading(true);
-      const response = await aiApi.generateInternshipContent(internshipPrompt);
-      setGeneratedContent(response);
-      toast({
-        title: "Success",
-        description: "Internship content generated successfully"
-      });
+      const response = await aiApi.aiGenerateInternship(internshipPrompt);
+      setGeneratedContent(response.content);
+      
+      if (autoSave) {
+        await adminApi.createInternship(response.content);
+        toast({
+          title: "Success",
+          description: "Internship content generated and saved successfully"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Internship content generated successfully"
+        });
+      }
     } catch (error) {
       console.error("Error generating internship content:", error);
       toast({
@@ -184,6 +204,61 @@ const AIContentGenerator = () => {
 
   const clearContent = () => {
     setGeneratedContent(null);
+  };
+
+  const generateBulkContent = async () => {
+    if (!contentType || !customPrompt.trim()) {
+      toast({
+        title: "Error",
+        description: "Please select content type and enter a prompt",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await aiApi.aiGenerateMultiple(contentType, customPrompt, bulkCount);
+      setGeneratedContent(response.content);
+      
+      if (autoSave) {
+        let savedCount = 0;
+        for (const item of response.content) {
+          try {
+            if (contentType === "job") {
+              await adminApi.createJob(item);
+            } else if (contentType === "internship") {
+              await adminApi.createInternship(item);
+            } else if (contentType === "article") {
+              await adminApi.createArticle(item);
+            } else if (contentType === "roadmap") {
+              await adminApi.createRoadmap(item);
+            }
+            savedCount++;
+          } catch (error) {
+            console.error(`Error saving item:`, error);
+          }
+        }
+        toast({
+          title: "Success",
+          description: `Generated ${bulkCount} items, saved ${savedCount} successfully`
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Generated ${bulkCount} ${contentType} items successfully`
+        });
+      }
+    } catch (error) {
+      console.error("Error generating bulk content:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate bulk content",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -378,17 +453,54 @@ const AIContentGenerator = () => {
                   rows={3}
                 />
               </div>
-              <Button 
-                onClick={generateCustomContent} 
-                disabled={loading}
-                className="w-full"
-              >
-                {loading ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
-                ) : (
-                  <><Wand2 className="w-4 h-4 mr-2" />Generate Custom Content</>
-                )}
-              </Button>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Bulk Generate Count</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={bulkCount}
+                    onChange={(e) => setBulkCount(parseInt(e.target.value) || 1)}
+                    placeholder="Number of items"
+                  />
+                </div>
+                <div className="flex items-center space-x-2 pt-6">
+                  <input
+                    type="checkbox"
+                    id="autoSave"
+                    checked={autoSave}
+                    onChange={(e) => setAutoSave(e.target.checked)}
+                  />
+                  <label htmlFor="autoSave" className="text-sm">Auto-save to database</label>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={generateCustomContent} 
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                  ) : (
+                    <><Wand2 className="w-4 h-4 mr-2" />Generate Single</>
+                  )}
+                </Button>
+                <Button 
+                  onClick={generateBulkContent} 
+                  disabled={loading || bulkCount < 2}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                  ) : (
+                    <><Sparkles className="w-4 h-4 mr-2" />Bulk Generate ({bulkCount})</>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

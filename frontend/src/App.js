@@ -8,7 +8,7 @@ import JobManagement from "./components/admin/JobManagement";
 import InternshipManagement from "./components/admin/InternshipManagement";
 import ArticleManagement from "./components/admin/ArticleManagement";
 import RoadmapManagement from "./components/admin/RoadmapManagement";
-import AIContentGenerator from "./components/admin/AIContentGenerator";
+import DSAManagement from "./components/admin/DSAManagement";
 import ResumeReviewer from "./components/ResumeReviewer";
 import PortfolioBuilder from "./components/PortfolioBuilder";
 import "./App.css";
@@ -69,7 +69,7 @@ function App() {
                   <Route path="internships" element={<InternshipManagement />} />
                   <Route path="articles" element={<ArticleManagement />} />
                   <Route path="roadmaps" element={<RoadmapManagement />} />
-                  <Route path="ai-generator" element={<AIContentGenerator />} />
+                  <Route path="dsa-corner" element={<DSAManagement />} />
                 </Routes>
               </AdminLayout>
             } />

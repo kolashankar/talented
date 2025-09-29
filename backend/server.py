@@ -11,8 +11,10 @@ from database import connect_to_mongo, close_mongo_connection
 # Import routes
 from admin_routes import admin_router
 from ai_routes import ai_router, public_ai_router
+from ai_agent_routes import ai_agent_router
 from auth_routes import auth_router
 from user_auth_routes import user_auth_router
+from google_oauth_routes import oauth_router
 from resume_routes import resume_router
 from portfolio_routes import portfolio_router
 from public_routes import public_router
@@ -50,8 +52,10 @@ async def health_check():
 # Include all route modules
 api_router.include_router(auth_router)  # /api/auth/*
 api_router.include_router(user_auth_router)  # /api/user-auth/*
+api_router.include_router(oauth_router)  # /api/auth/google/*
 api_router.include_router(admin_router)  # /api/admin/*
 api_router.include_router(ai_router)     # /api/ai/*
+api_router.include_router(ai_agent_router)  # /api/ai-agent/*
 api_router.include_router(public_ai_router)  # /api/public-ai/*
 api_router.include_router(resume_router)  # /api/resume/*
 api_router.include_router(portfolio_router)  # /api/portfolio/*
@@ -87,16 +91,20 @@ async def startup_event():
     try:
         await connect_to_mongo()
         await create_default_admin()
-        
+
         # Initialize footer pages
-        from footer_routes import initialize_footer_pages
-        await initialize_footer_pages()
-        
+        try:
+            from footer_routes import initialize_footer_pages
+            await initialize_footer_pages()
+        except Exception as e:
+            logger.warning(f"Footer pages initialization failed: {str(e)}")
+
         logger.info("Application started successfully")
-        logger.info("Default admin credentials: username=admin, password=admin123")
+        logger.info("Admin credentials: email=kolashankar113@gmail.com, password=Shankar@113")
     except Exception as e:
         logger.error(f"Error during startup: {str(e)}")
-        raise
+        # Don't raise - let the app start even if some parts fail
+        pass
 
 # Shutdown event
 @app.on_event("shutdown")

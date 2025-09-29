@@ -6,8 +6,9 @@ import {
   GraduationCap, 
   FileText, 
   Map, 
-  Sparkles,
-  BarChart3
+  Code2,
+  BarChart3,
+  Sparkles
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -41,9 +42,9 @@ const AdminSidebar = () => {
       icon: Map
     },
     {
-      name: "AI Generator",
-      href: "/admin/ai-generator",
-      icon: Sparkles
+      name: "DSA Corner",
+      href: "/admin/dsa-corner",
+      icon: Code2
     }
   ];
 

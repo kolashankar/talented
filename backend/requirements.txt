@@ -31,3 +31,7 @@ litellm>=1.77.4
 reportlab>=4.0.0
 weasyprint>=60.0
 httpx>=0.28.0
+cloudinary>=1.36.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.2.0

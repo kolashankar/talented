@@ -5,7 +5,9 @@ from models import (
     Internship, InternshipCreate, InternshipUpdate,
     Article, ArticleCreate, ArticleUpdate,
     Roadmap, RoadmapCreate, RoadmapUpdate,
-    ContentStatus, DashboardStats
+    ContentStatus, DashboardStats,
+    DSAProblem, DSAProblemCreate, DSAProblemUpdate,
+    DSACategory, DSATopic, DSAChapter, DSADifficulty
 )
 from database import get_database
 from auth import get_current_active_admin, AdminUser
@@ -587,4 +589,189 @@ async def get_dashboard_stats(current_admin: AdminUser = Depends(get_current_act
         return stats
     except Exception as e:
         logger.error(f"Error fetching dashboard stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# DSA Corner Management Routes
+@admin_router.post("/dsa-problems", response_model=DSAProblem)
+async def create_dsa_problem(problem_data: DSAProblemCreate, current_admin: AdminUser = Depends(get_current_active_admin)):
+    """Create a new DSA problem"""
+    try:
+        db = await get_database()
+        
+        # Check if slug is unique
+        existing_problem = await db.dsa_problems.find_one({"slug": problem_data.slug})
+        if existing_problem:
+            raise HTTPException(status_code=400, detail="DSA problem with this slug already exists")
+        
+        problem = DSAProblem(**problem_data.dict(), created_by=current_admin.username)
+        problem_dict = problem.dict()
+        
+        result = await db.dsa_problems.insert_one(problem_dict)
+        if result.inserted_id:
+            return problem
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create DSA problem")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating DSA problem: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/dsa-problems", response_model=List[DSAProblem])
+async def get_dsa_problems_admin(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    status: Optional[ContentStatus] = None,
+    difficulty: Optional[DSADifficulty] = None,
+    category_id: Optional[str] = None,
+    search: Optional[str] = None,
+    current_admin: AdminUser = Depends(get_current_active_admin)
+):
+    """Get all DSA problems for admin with pagination and filtering"""
+    try:
+        db = await get_database()
+        query = {}
+        
+        if status:
+            query["status"] = status
+        
+        if difficulty:
+            query["difficulty"] = difficulty
+            
+        if category_id:
+            query["category_id"] = category_id
+        
+        if search:
+            query["$text"] = {"$search": search}
+        
+        problems = await db.dsa_problems.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(length=limit)
+        return [DSAProblem(**problem) for problem in problems]
+    except Exception as e:
+        logger.error(f"Error fetching DSA problems: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/dsa-problems/{problem_id}", response_model=DSAProblem)
+async def get_dsa_problem_admin(problem_id: str, current_admin: AdminUser = Depends(get_current_active_admin)):
+    """Get a specific DSA problem by ID for admin"""
+    try:
+        db = await get_database()
+        problem = await db.dsa_problems.find_one({"id": problem_id})
+        
+        if not problem:
+            raise HTTPException(status_code=404, detail="DSA problem not found")
+        
+        return DSAProblem(**problem)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching DSA problem: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.put("/dsa-problems/{problem_id}", response_model=DSAProblem)
+async def update_dsa_problem(
+    problem_id: str, 
+    problem_update: DSAProblemUpdate, 
+    current_admin: AdminUser = Depends(get_current_active_admin)
+):
+    """Update a DSA problem"""
+    try:
+        db = await get_database()
+        
+        # Check if slug is unique (if being updated)
+        if problem_update.slug:
+            existing_problem = await db.dsa_problems.find_one({
+                "slug": problem_update.slug, 
+                "id": {"$ne": problem_id}
+            })
+            if existing_problem:
+                raise HTTPException(status_code=400, detail="DSA problem with this slug already exists")
+        
+        update_data = {k: v for k, v in problem_update.dict().items() if v is not None}
+        update_data["updated_at"] = datetime.utcnow()
+        
+        result = await db.dsa_problems.update_one(
+            {"id": problem_id},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="DSA problem not found")
+        
+        updated_problem = await db.dsa_problems.find_one({"id": problem_id})
+        return DSAProblem(**updated_problem)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating DSA problem: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.delete("/dsa-problems/{problem_id}")
+async def delete_dsa_problem(problem_id: str, current_admin: AdminUser = Depends(get_current_active_admin)):
+    """Delete a DSA problem"""
+    try:
+        db = await get_database()
+        result = await db.dsa_problems.delete_one({"id": problem_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="DSA problem not found")
+        
+        return {"message": "DSA problem deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting DSA problem: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Fresher Jobs Management Routes (Jobs with experience_level=fresher)
+@admin_router.get("/fresher-jobs", response_model=List[Job])
+async def get_fresher_jobs(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    status: Optional[ContentStatus] = None,
+    search: Optional[str] = None,
+    current_admin: AdminUser = Depends(get_current_active_admin)
+):
+    """Get all fresher jobs with pagination and filtering"""
+    try:
+        db = await get_database()
+        query = {"experience_level": "fresher"}
+        
+        if status:
+            query["status"] = status
+        
+        if search:
+            query["$text"] = {"$search": search}
+        
+        jobs = await db.jobs.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(length=limit)
+        return [Job(**job) for job in jobs]
+    except Exception as e:
+        logger.error(f"Error fetching fresher jobs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.post("/fresher-jobs", response_model=Job)
+async def create_fresher_job(job_data: JobCreate, current_admin: AdminUser = Depends(get_current_active_admin)):
+    """Create a new fresher job posting"""
+    try:
+        db = await get_database()
+        
+        # Force experience_level to fresher
+        job_dict = job_data.dict()
+        job_dict['experience_level'] = "fresher"
+        
+        # Handle skills field mapping
+        if job_dict.get('skills') and not job_dict.get('skills_required'):
+            job_dict['skills_required'] = job_dict['skills']
+        elif not job_dict.get('skills') and job_dict.get('skills_required'):
+            job_dict['skills'] = job_dict['skills_required']
+        
+        job = Job(**job_dict, created_by=current_admin.username)
+        job_dict = job.dict()
+        
+        result = await db.jobs.insert_one(job_dict)
+        if result.inserted_id:
+            return job
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create fresher job")
+    except Exception as e:
+        logger.error(f"Error creating fresher job: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

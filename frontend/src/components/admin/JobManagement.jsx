@@ -11,6 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useToast } from "../ui/use-toast";
 import { adminApi } from "../../services/api";
 
+// Import apiClient for direct API calls
+import axios from "axios";
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const apiClient = axios.create({
+  baseURL: `${BACKEND_URL}/api`,
+  timeout: 30000,
+});
+
+// Add auth interceptor
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('adminToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const JobManagement = () => {
   const [jobs, setJobs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,7 +76,20 @@ const JobManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     try {
+      // Validate required fields
+      if (!formData.title?.trim()) {
+        throw new Error('Job title is required');
+      }
+      if (!formData.company?.trim()) {
+        throw new Error('Company name is required');
+      }
+      if (!formData.description?.trim()) {
+        throw new Error('Job description is required');
+      }
+
       const jobData = {
         ...formData,
         skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
@@ -68,43 +98,59 @@ const JobManagement = () => {
         expiration_date: formData.expiration_date ? new Date(formData.expiration_date).toISOString() : null
       };
 
+      let response;
       if (selectedJob) {
-        await adminApi.updateJob(selectedJob.id, jobData);
+        response = await adminApi.updateJob(selectedJob.id, jobData);
         toast({
-          title: "Success",
-          description: "Job updated successfully"
+          title: "Success!",
+          description: "Job updated successfully and saved to database"
         });
       } else {
-        await adminApi.createJob(jobData);
+        response = await adminApi.createJob(jobData);
         toast({
-          title: "Success",
-          description: "Job created successfully"
+          title: "Success!",
+          description: "Job created successfully and saved to database"
         });
       }
-      
+
       setIsDialogOpen(false);
       resetForm();
-      fetchJobs();
+      await fetchJobs(); // Refresh the list
     } catch (error) {
       console.error("Error saving job:", error);
+      
+      let errorMessage = "Failed to save job. Please try again.";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again.";
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || "Invalid job data. Please check all fields.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again in a moment.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to save job",
+        title: "Save Failed",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = (job) => {
     setSelectedJob(job);
-    
+
     // Format expiration_date for datetime-local input
     let formattedExpirationDate = '';
     if (job.expiration_date) {
       const date = new Date(job.expiration_date);
       formattedExpirationDate = date.toISOString().slice(0, 16);
     }
-    
+
     setFormData({
       title: job.title,
       company: job.company,
@@ -197,8 +243,117 @@ const JobManagement = () => {
               <DialogTitle>
                 {selectedJob ? "Edit Job" : "Add New Job"}
               </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {selectedJob ? "Modify the job details below" : "Fill in the details to create a new job posting"}
+              </p>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* AI Agent Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">AI</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">AI Job Generator</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="ai-prompt">Describe the job you want to create</Label>
+                    <Textarea
+                      id="ai-prompt"
+                      placeholder="e.g., Senior Frontend Developer at a fintech startup in Mumbai, React expertise required, remote work available, competitive salary"
+                      rows={2}
+                      className="resize-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                      <Label htmlFor="ai-company">Company (optional)</Label>
+                      <Input
+                        id="ai-company"
+                        placeholder="Company name"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ai-location">Location (optional)</Label>
+                      <Input
+                        id="ai-location"
+                        placeholder="City, Country"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ai-level">Experience Level</Label>
+                      <Input
+                        id="ai-level"
+                        placeholder="e.g., entry, mid, senior, lead"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={async () => {
+                      const promptElement = document.getElementById('ai-prompt');
+                      const companyElement = document.getElementById('ai-company');
+                      const locationElement = document.getElementById('ai-location');
+                      
+                      const basePrompt = promptElement?.value || 'Generate a software developer job posting';
+                      const company = companyElement?.value || '';
+                      const location = locationElement?.value || '';
+                      const levelElement = document.getElementById('ai-level');
+                      const level = levelElement?.value || '';
+                      
+                      let fullPrompt = basePrompt;
+                      if (company) fullPrompt += ` at ${company}`;
+                      if (location) fullPrompt += ` in ${location}`;
+                      if (level) fullPrompt += ` for ${level} level`;
+                      
+                      try {
+                        const response = await apiClient.post(`/ai/generate-job?prompt=${encodeURIComponent(fullPrompt)}`);
+                        const data = response.data;
+                        
+                        if (!data.content) {
+                          throw new Error('No content received from AI');
+                        }
+                        
+                        const content = data.content;
+                        setFormData({
+                          ...formData,
+                          title: content.title || formData.title,
+                          company: content.company || company || formData.company,
+                          description: content.description || formData.description,
+                          requirements: content.requirements?.join('\n') || formData.requirements,
+                          responsibilities: content.responsibilities?.join('\n') || formData.responsibilities,
+                          skills: content.skills_required?.join(', ') || formData.skills,
+                          location: content.location || location || formData.location,
+                          salary_range: content.salary_range || formData.salary_range,
+                          job_type: content.job_type || formData.job_type,
+                          experience_level: content.experience_level || level || formData.experience_level
+                        });
+                        
+                        toast({
+                          title: "Success!",
+                          description: "Form auto-filled with AI-generated content. Review and modify as needed."
+                        });
+                      } catch (error) {
+                        console.error('AI Generation Error:', error);
+                        toast({
+                          title: "AI Generation Failed",
+                          description: error.message || "Please try again with a different prompt or check your connection.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
+                    🤖 Generate Job with AI
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Job Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="title">Job Title</Label>
@@ -265,7 +420,7 @@ const JobManagement = () => {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="description">Job Description</Label>
                 <Textarea
@@ -276,7 +431,7 @@ const JobManagement = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="requirements">Requirements (one per line)</Label>
                 <Textarea
@@ -287,7 +442,7 @@ const JobManagement = () => {
                   placeholder="Bachelor's degree in Computer Science\n3+ years of experience\nProficiency in JavaScript"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="responsibilities">Responsibilities (one per line)</Label>
                 <Textarea
@@ -298,7 +453,7 @@ const JobManagement = () => {
                   placeholder="Develop web applications\nCollaborate with team members\nWrite clean, maintainable code"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="skills">Skills (comma separated)</Label>
                 <Input
@@ -308,7 +463,7 @@ const JobManagement = () => {
                   placeholder="JavaScript, React, Node.js, MongoDB"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="application_url">Application URL</Label>
                 <Input
@@ -319,7 +474,7 @@ const JobManagement = () => {
                   placeholder="https://company.com/apply"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="expiration_date">Expiration Date (Auto-delete)</Label>
                 <Input
@@ -330,7 +485,7 @@ const JobManagement = () => {
                 />
                 <p className="text-sm text-gray-500 mt-1">Job will be automatically deleted from database on this date</p>
               </div>
-              
+
               <div className="flex items-center space-x-4">
                 <label className="flex items-center space-x-2">
                   <input
@@ -349,13 +504,20 @@ const JobManagement = () => {
                   <span>Active</span>
                 </label>
               </div>
-              
+
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {selectedJob ? "Update Job" : "Create Job"}
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      {selectedJob ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    selectedJob ? "Update Job" : "Create Job"
+                  )}
                 </Button>
               </div>
             </form>

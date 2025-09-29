@@ -129,7 +129,7 @@ async def refresh_token(current_admin: AdminUser = Depends(get_current_active_ad
     try:
         access_token_expires = timedelta(minutes=1440)  # 24 hours
         access_token = create_access_token(
-            data={"sub": current_admin.username}, expires_delta=access_token_expires
+            data={"sub": current_admin.email}, expires_delta=access_token_expires
         )
         
         return {
@@ -140,3 +140,8 @@ async def refresh_token(current_admin: AdminUser = Depends(get_current_active_ad
     except Exception as e:
         logger.error(f"Error refreshing token: {str(e)}")
         raise HTTPException(status_code=500, detail="Token refresh failed")
+
+@auth_router.get("/health")
+async def auth_health():
+    """Simple health check for auth endpoints"""
+    return {"status": "healthy", "service": "auth"}

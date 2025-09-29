@@ -7,7 +7,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models import AdminUser
 from database import get_database
 import os
+import logging
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -42,16 +45,24 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 async def get_admin_by_username_or_email(username_or_email: str) -> Optional[AdminUser]:
     """Get admin user by username or email"""
-    db = await get_database()
-    admin_data = await db.admin_users.find_one({
-        "$or": [
-            {"username": username_or_email},
-            {"email": username_or_email}
-        ]
-    })
-    if admin_data:
-        return AdminUser(**admin_data)
-    return None
+    try:
+        db = await get_database()
+        if not db:
+            logger.error("Database connection not available")
+            return None
+            
+        admin_data = await db.admin_users.find_one({
+            "$or": [
+                {"username": username_or_email},
+                {"email": username_or_email}
+            ]
+        })
+        if admin_data:
+            return AdminUser(**admin_data)
+        return None
+    except Exception as e:
+        logger.error(f"Error getting admin by username/email: {str(e)}")
+        return None
 
 async def authenticate_admin(username_or_email: str, password: str) -> Optional[AdminUser]:
     """Authenticate admin user by username or email"""
@@ -71,25 +82,38 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
     )
     
     try:
+        if not credentials or not credentials.credentials:
+            raise credentials_exception
+            
         token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"JWT decode error: {str(e)}")
+        raise credentials_exception
+    except Exception as e:
+        logger.error(f"Token validation error: {str(e)}")
         raise credentials_exception
     
-    admin = await get_admin_by_username_or_email(username_or_email=email)
-    if admin is None:
+    try:
+        admin = await get_admin_by_username_or_email(username_or_email=email)
+        if admin is None:
+            raise credentials_exception
+        
+        if not admin.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Inactive user"
+            )
+        
+        return admin
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting current admin: {str(e)}")
         raise credentials_exception
-    
-    if not admin.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Inactive user"
-        )
-    
-    return admin
 
 async def get_current_active_admin(current_admin: AdminUser = Depends(get_current_admin)) -> AdminUser:
     """Get current active admin user"""
