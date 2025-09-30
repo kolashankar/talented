@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
+from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models import User
@@ -10,12 +11,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Password hashing
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60  # 7 days for users
 
 security = HTTPBearer()
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Generate password hash"""
+    return pwd_context.hash(password)
 
 def create_user_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create JWT access token for users"""
@@ -44,6 +56,44 @@ async def get_user_by_google_id(google_id: str) -> Optional[User]:
     if user_data:
         return User(**user_data)
     return None
+
+async def authenticate_user(email: str, password: str) -> Optional[User]:
+    """Authenticate user with email and password"""
+    user = await get_user_by_email(email)
+    if not user or not user.hashed_password:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+async def create_user(email: str, password: str, name: str) -> User:
+    """Create a new user with email and password"""
+    db = await get_database()
+    
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": email})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Create new user
+    hashed_password = get_password_hash(password)
+    user = User(
+        email=email,
+        hashed_password=hashed_password,
+        name=name,
+        email_verified=False
+    )
+    
+    user_dict = user.dict()
+    result = await db.users.insert_one(user_dict)
+    
+    if result.inserted_id:
+        return user
+    else:
+        raise HTTPException(status_code=500, detail="Failed to create user")
 
 async def create_or_update_user(user_data: dict) -> User:
     """Create or update user from Google OAuth"""

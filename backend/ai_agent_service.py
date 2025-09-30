@@ -9,7 +9,8 @@ import cloudinary
 from cloudinary import uploader
 from models import (
     JobCreate, InternshipCreate, ArticleCreate, 
-    RoadmapCreate, DSAProblemCreate, DSADifficulty
+    RoadmapCreate, DSAProblemCreate, DSADifficulty,
+    AIFormFillerRequest, AIFormFillerResponse, ImageGenerationRequest, ImageGenerationResponse
 )
 
 logger = logging.getLogger(__name__)
@@ -455,6 +456,154 @@ class AIAgentService:
                     }
                 ]
             }
+
+    async def fill_form(self, request: AIFormFillerRequest) -> AIFormFillerResponse:
+        """AI-powered form filling with image and logo generation"""
+        try:
+            form_data = {}
+            generated_images = {}
+            generated_logos = {}
+            
+            if request.content_type == "job":
+                form_data = await self.generate_job_content(request.user_prompt)
+            elif request.content_type == "internship":
+                form_data = await self.generate_internship_content(request.user_prompt)
+            elif request.content_type == "article":
+                form_data = await self.generate_article_content(request.user_prompt)
+            elif request.content_type == "roadmap":
+                form_data = await self.generate_roadmap_content(request.user_prompt)
+            elif request.content_type == "dsa":
+                form_data = await self.generate_dsa_problem(request.user_prompt)
+            else:
+                raise ValueError(f"Unsupported content type: {request.content_type}")
+
+            # Generate images if requested
+            if request.generate_images:
+                generated_images = await self._generate_content_images(form_data, request.content_type)
+            
+            # Generate logos if requested
+            if request.generate_logos:
+                generated_logos = await self._generate_logos(form_data, request.content_type)
+
+            return AIFormFillerResponse(
+                form_data=form_data,
+                generated_images=generated_images,
+                generated_logos=generated_logos,
+                confidence_score=0.9,
+                suggestions=["Review generated content for accuracy", "Customize as needed"]
+            )
+
+        except Exception as e:
+            logger.error(f"Form filling error: {str(e)}")
+            raise
+
+    async def _generate_content_images(self, form_data: Dict[str, Any], content_type: str) -> Dict[str, str]:
+        """Generate relevant images for the content"""
+        images = {}
+        
+        try:
+            # Generate featured image
+            if content_type == "job":
+                images['featured_image'] = await self._search_image(f"{form_data.get('title', 'job')} {form_data.get('company', 'company')}")
+                images['company_banner'] = await self._search_image(f"{form_data.get('company', 'company')} office workplace")
+            
+            elif content_type == "internship":
+                images['featured_image'] = await self._search_image(f"internship {form_data.get('title', 'intern')} learning")
+                images['company_image'] = await self._search_image(f"{form_data.get('company', 'company')} office")
+            
+            elif content_type == "article":
+                images['featured_image'] = await self._search_image(f"{form_data.get('category', 'technology')} {form_data.get('title', 'article')}")
+                images['header_image'] = await self._search_image(f"tech professional {form_data.get('category', 'technology')}")
+            
+            elif content_type == "roadmap":
+                images['featured_image'] = await self._search_image(f"learning path {form_data.get('title', 'roadmap')}")
+                images['progress_image'] = await self._search_image("learning progress development")
+            
+            elif content_type == "dsa":
+                images['featured_image'] = await self._search_image(f"algorithm {form_data.get('category_id', 'programming')} coding")
+                images['concept_image'] = await self._search_image(f"data structure {form_data.get('category_id', 'algorithm')}")
+        
+        except Exception as e:
+            logger.error(f"Image generation error: {str(e)}")
+            # Fallback to placeholder images
+            images['featured_image'] = f"https://via.placeholder.com/800x400/0066cc/ffffff?text={content_type.title()}"
+        
+        return images
+
+    async def _generate_logos(self, form_data: Dict[str, Any], content_type: str) -> Dict[str, str]:
+        """Generate company logos and icons"""
+        logos = {}
+        
+        try:
+            if content_type in ["job", "internship"]:
+                company_name = form_data.get('company', 'Company')
+                # Generate company logo using UI Avatars
+                logos['company_logo'] = f"https://ui-avatars.com/api/?name={company_name.replace(' ', '+')}&background=random&size=200&format=png"
+                
+                # Generate industry icon
+                industry_keywords = self._extract_industry_keywords(form_data.get('title', ''))
+                logos['industry_icon'] = await self._search_icon(industry_keywords)
+            
+            elif content_type == "article":
+                category = form_data.get('category', 'technology')
+                logos['category_icon'] = await self._search_icon(category)
+                logos['author_avatar'] = f"https://ui-avatars.com/api/?name={form_data.get('author', 'Author')}&background=4285f4&color=fff&size=100"
+            
+            elif content_type == "roadmap":
+                skill = form_data.get('title', 'skill')
+                logos['skill_icon'] = await self._search_icon(skill)
+                logos['difficulty_badge'] = self._generate_difficulty_badge(form_data.get('difficulty_level', 'intermediate'))
+            
+            elif content_type == "dsa":
+                category = form_data.get('category_id', 'algorithm')
+                logos['category_icon'] = await self._search_icon(f"{category} programming")
+                logos['difficulty_badge'] = self._generate_difficulty_badge(form_data.get('difficulty', 'medium'))
+        
+        except Exception as e:
+            logger.error(f"Logo generation error: {str(e)}")
+        
+        return logos
+
+    async def _search_image(self, query: str) -> str:
+        """Search for relevant images using external APIs"""
+        try:
+            # For now, return a placeholder image
+            # In production, integrate with Unsplash, Pexels, etc.
+            return f"https://via.placeholder.com/800x400/0066cc/ffffff?text={query.replace(' ', '+')}"
+            
+        except Exception as e:
+            logger.error(f"Image search error: {str(e)}")
+            return f"https://via.placeholder.com/800x400/0066cc/ffffff?text={query.replace(' ', '+')}"
+
+    async def _search_icon(self, query: str) -> str:
+        """Generate or search for relevant icons"""
+        # For now, return a placeholder icon
+        # In production, you could integrate with icon APIs like Flaticon, Icons8, etc.
+        return f"https://via.placeholder.com/64x64/4285f4/ffffff?text={query[0].upper()}"
+
+    def _generate_difficulty_badge(self, difficulty: str) -> str:
+        """Generate difficulty badge image"""
+        colors = {
+            'easy': '28a745',
+            'beginner': '28a745',
+            'medium': 'ffc107',
+            'intermediate': 'ffc107',
+            'hard': 'dc3545',
+            'advanced': 'dc3545'
+        }
+        color = colors.get(difficulty.lower(), 'ffc107')
+        return f"https://via.placeholder.com/100x30/{color}/ffffff?text={difficulty.title()}"
+
+    def _extract_industry_keywords(self, title: str) -> str:
+        """Extract industry keywords from job title"""
+        tech_keywords = ['software', 'developer', 'engineer', 'programmer', 'data', 'ai', 'ml', 'web', 'mobile', 'devops']
+        title_lower = title.lower()
+        
+        for keyword in tech_keywords:
+            if keyword in title_lower:
+                return keyword
+        
+        return 'technology'
 
 # Global instance
 ai_agent = AIAgentService()

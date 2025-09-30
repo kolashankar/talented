@@ -278,17 +278,30 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
     google_id: Optional[str] = None
+    hashed_password: Optional[str] = None  # For email/password login
     name: str
     profile_picture: Optional[str] = None
     is_active: bool = True
+    email_verified: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
 
 class UserCreate(BaseModel):
     email: str
     google_id: Optional[str] = None
+    hashed_password: Optional[str] = None
     name: str
     profile_picture: Optional[str] = None
+    email_verified: bool = False
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    name: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 # DSA Problem Models
 class DSADifficulty(str, Enum):
@@ -470,8 +483,63 @@ class PortfolioGenerateResponse(BaseModel):
     generated_content: Dict[str, Any]
     html_content: str
     css_content: str
+    js_content: Optional[str] = None
     live_url: str
     share_token: str
+    template_name: str
+    preview_image: Optional[str] = None
+
+# Portfolio Template Models
+class PortfolioTemplate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category: str  # 'modern', 'creative', 'minimal', 'corporate', 'animated'
+    difficulty: str  # 'basic', 'intermediate', 'advanced'
+    features: List[str] = []  # ['3d-effects', 'animations', 'dark-mode', 'responsive']
+    preview_image: str
+    html_template: str
+    css_template: str
+    js_template: Optional[str] = None
+    variables: Dict[str, Any] = {}  # Template variables for customization
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# AI Form Filler Models
+class AIFormFillerRequest(BaseModel):
+    content_type: str  # 'job', 'internship', 'article', 'roadmap', 'dsa'
+    user_prompt: str
+    context_data: Optional[Dict[str, Any]] = {}
+    generate_images: bool = True
+    generate_logos: bool = True
+    
+class AIFormFillerResponse(BaseModel):
+    form_data: Dict[str, Any]
+    generated_images: Dict[str, str] = {}  # field_name -> image_url
+    generated_logos: Dict[str, str] = {}   # field_name -> logo_url
+    confidence_score: float
+    suggestions: List[str] = []
+
+# Image Generation Models
+class ImageGenerationRequest(BaseModel):
+    prompt: str
+    style: str = "professional"  # 'professional', 'creative', 'minimal', 'corporate'
+    size: str = "1024x1024"
+    quality: str = "standard"
+    
+class ImageGenerationResponse(BaseModel):
+    image_url: str
+    prompt_used: str
+    generation_time: float
+    
+# Enhanced Resume Analysis
+class EnhancedResumeAnalysis(BaseModel):
+    ats_score: float
+    keyword_density: Dict[str, float]
+    section_completeness: Dict[str, float]
+    formatting_issues: List[str] = []
+    improvement_suggestions: List[str] = []
+    skill_gaps: List[str] = []
+    career_recommendations: List[str] = []
 
 # User Interaction Models
 class UserInteraction(BaseModel):

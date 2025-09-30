@@ -1,15 +1,27 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Alert, AlertDescription } from './ui/alert';
-import { 
-  Upload, FileText, Globe, Eye, Share, Download, 
-  User, Briefcase, Code, GraduationCap, Award,
-  AlertCircle, CheckCircle, Palette, Zap
-} from 'lucide-react';
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { Alert, AlertDescription } from "./ui/alert";
+import {
+  Upload,
+  FileText,
+  Globe,
+  Eye,
+  Share,
+  Download,
+  User,
+  Briefcase,
+  Code,
+  GraduationCap,
+  Award,
+  AlertCircle,
+  CheckCircle,
+  Palette,
+  Zap,
+} from "lucide-react";
 
 const PortfolioBuilder = () => {
   const { user, login } = useContext(AuthContext);
@@ -17,14 +29,14 @@ const PortfolioBuilder = () => {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
-  const [resumeText, setResumeText] = useState('');
+  const [resumeText, setResumeText] = useState("");
   const [parsedData, setParsedData] = useState(null);
-  const [userPrompt, setUserPrompt] = useState('');
+  const [userPrompt, setUserPrompt] = useState("");
   const [generatedPortfolio, setGeneratedPortfolio] = useState(null);
   const [myPortfolios, setMyPortfolios] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('create');
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("create");
 
   useEffect(() => {
     if (user) {
@@ -35,71 +47,98 @@ const PortfolioBuilder = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/portfolio/templates`);
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portfolio/enhanced-templates`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
       if (response.ok) {
         const data = await response.json();
-        setTemplates(data);
+        setTemplates(data.templates || []);
       }
     } catch (err) {
-      console.error('Error fetching templates:', err);
+      console.error("Error fetching templates:", err);
     }
   };
 
   const fetchMyPortfolios = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/portfolio/my-portfolios`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portfolio/my-portfolios`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
       if (response.ok) {
         const data = await response.json();
         setMyPortfolios(data);
       }
     } catch (err) {
-      console.error('Error fetching portfolios:', err);
+      console.error("Error fetching portfolios:", err);
     }
   };
 
   const parseResume = async () => {
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       let response;
-      
+      const token = localStorage.getItem("token");
+
       if (resumeFile) {
         const formData = new FormData();
-        formData.append('resume_file', resumeFile);
-        
-        response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/resume/upload-parse`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        formData.append("resume_file", resumeFile);
+
+        response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/ai-enhanced/resume/upload-parse`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
           },
-          body: formData
-        });
+        );
+      } else if (resumeText) {
+        response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/ai-enhanced/resume/parse`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              resume_text: resumeText,
+            }),
+          },
+        );
       } else {
-        response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/resume/parse`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ resume_text: resumeText })
-        });
+        setError("Please provide a resume file or text");
+        setLoading(false);
+        return;
       }
 
       if (response.ok) {
         const data = await response.json();
         setParsedData(data.parsed_data);
-        setStep(3);
+        setStep(3); // Move to template selection
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to parse resume');
+        setError(errorData.detail || "Failed to parse resume");
       }
     } catch (err) {
-      setError('Network error occurred');
+      setError("Error parsing resume: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -107,39 +146,41 @@ const PortfolioBuilder = () => {
 
   const generatePortfolio = async () => {
     if (!selectedTemplate || !parsedData) {
-      setError('Please select a template and parse your resume first');
+      setError("Please select a template and ensure resume is parsed");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/portfolio/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portfolio/generate-enhanced`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            template_id: selectedTemplate.id,
+            resume_data: parsedData || {},
+            user_prompt: userPrompt,
+          }),
         },
-        body: JSON.stringify({
-          template_id: selectedTemplate.id,
-          resume_data: parsedData,
-          user_prompt: userPrompt || 'Create a professional portfolio website',
-          additional_preferences: {}
-        })
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
         setGeneratedPortfolio(data);
-        setStep(4);
-        fetchMyPortfolios(); // Refresh the list
+        setStep(4); // Move to preview
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to generate portfolio');
+        setError(errorData.detail || "Failed to generate portfolio");
       }
     } catch (err) {
-      setError('Network error occurred');
+      setError("Error generating portfolio: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -149,11 +190,11 @@ const PortfolioBuilder = () => {
     setStep(1);
     setSelectedTemplate(null);
     setResumeFile(null);
-    setResumeText('');
+    setResumeText("");
     setParsedData(null);
-    setUserPrompt('');
+    setUserPrompt("");
     setGeneratedPortfolio(null);
-    setError('');
+    setError("");
   };
 
   if (!user) {
@@ -164,7 +205,9 @@ const PortfolioBuilder = () => {
             <CardHeader className="text-center">
               <Globe className="w-12 h-12 text-purple-600 mx-auto mb-4" />
               <CardTitle className="text-2xl">Portfolio Builder</CardTitle>
-              <p className="text-gray-600">Create stunning portfolio websites instantly</p>
+              <p className="text-gray-600">
+                Create stunning portfolio websites instantly
+              </p>
             </CardHeader>
             <CardContent className="text-center">
               <Alert className="mb-4">
@@ -198,16 +241,16 @@ const PortfolioBuilder = () => {
         <div className="mb-8">
           <div className="flex justify-center space-x-4">
             <Button
-              variant={activeTab === 'create' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('create')}
+              variant={activeTab === "create" ? "default" : "outline"}
+              onClick={() => setActiveTab("create")}
               className="flex items-center gap-2"
             >
               <Zap className="w-4 h-4" />
               Create New
             </Button>
             <Button
-              variant={activeTab === 'my-portfolios' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('my-portfolios')}
+              variant={activeTab === "my-portfolios" ? "default" : "outline"}
+              onClick={() => setActiveTab("my-portfolios")}
               className="flex items-center gap-2"
             >
               <Globe className="w-4 h-4" />
@@ -216,30 +259,38 @@ const PortfolioBuilder = () => {
           </div>
         </div>
 
-        {activeTab === 'create' && (
+        {activeTab === "create" && (
           <div className="max-w-4xl mx-auto">
             {/* Progress Steps */}
             <div className="mb-8">
               <div className="flex items-center justify-center space-x-4">
                 {[1, 2, 3, 4].map((num) => (
                   <div key={num} className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      step >= num ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        step >= num
+                          ? "bg-purple-600 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
                       {num}
                     </div>
-                    {num < 4 && <div className={`w-12 h-1 ${
-                      step > num ? 'bg-purple-600' : 'bg-gray-200'
-                    }`} />}
+                    {num < 4 && (
+                      <div
+                        className={`w-12 h-1 ${
+                          step > num ? "bg-purple-600" : "bg-gray-200"
+                        }`}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
               <div className="flex justify-center mt-2">
                 <div className="text-sm text-gray-600">
-                  {step === 1 && 'Choose Template'}
-                  {step === 2 && 'Upload Resume'}
-                  {step === 3 && 'Customize'}
-                  {step === 4 && 'Preview & Share'}
+                  {step === 1 && "Choose Template"}
+                  {step === 2 && "Upload Resume"}
+                  {step === 3 && "Customize"}
+                  {step === 4 && "Preview & Share"}
                 </div>
               </div>
             </div>
@@ -260,20 +311,24 @@ const PortfolioBuilder = () => {
                         key={template.id}
                         className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                           selectedTemplate?.id === template.id
-                            ? 'border-purple-500 bg-purple-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? "border-purple-500 bg-purple-50"
+                            : "border-gray-200 hover:border-gray-300"
                         }`}
                         onClick={() => setSelectedTemplate(template)}
                       >
                         <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
                           <Globe className="w-8 h-8 text-gray-400" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-1">{template.name}</h3>
-                        <p className="text-sm text-gray-600">{template.description}</p>
+                        <h3 className="font-semibold text-lg mb-1">
+                          {template.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {template.description}
+                        </p>
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="flex justify-center mt-6">
                     <Button
                       onClick={() => setStep(2)}
@@ -308,17 +363,24 @@ const PortfolioBuilder = () => {
                           className="hidden"
                           id="resume-upload"
                         />
-                        <label htmlFor="resume-upload" className="cursor-pointer">
+                        <label
+                          htmlFor="resume-upload"
+                          className="cursor-pointer"
+                        >
                           <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-gray-600">Click to upload</p>
-                          <p className="text-xs text-gray-400">PDF, DOC, DOCX, TXT</p>
+                          <p className="text-xs text-gray-400">
+                            PDF, DOC, DOCX, TXT
+                          </p>
                         </label>
                       </div>
                       {resumeFile && (
                         <div className="mt-3 p-3 bg-green-50 rounded-lg">
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-green-600" />
-                            <span className="text-sm text-green-800">{resumeFile.name}</span>
+                            <span className="text-sm text-green-800">
+                              {resumeFile.name}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -343,7 +405,7 @@ const PortfolioBuilder = () => {
                       onClick={parseResume}
                       disabled={loading || (!resumeFile && !resumeText.trim())}
                     >
-                      {loading ? 'Processing...' : 'Parse Resume'}
+                      {loading ? "Processing..." : "Parse Resume"}
                     </Button>
                   </div>
                 </CardContent>
@@ -365,24 +427,48 @@ const PortfolioBuilder = () => {
                       <div>
                         <h4 className="font-medium mb-3">Personal Details</h4>
                         <div className="space-y-2 text-sm">
-                          <p><strong>Name:</strong> {parsedData.personal_details.full_name}</p>
-                          <p><strong>Email:</strong> {parsedData.personal_details.email}</p>
+                          <p>
+                            <strong>Name:</strong>{" "}
+                            {parsedData.personal_details.full_name}
+                          </p>
+                          <p>
+                            <strong>Email:</strong>{" "}
+                            {parsedData.personal_details.email}
+                          </p>
                           {parsedData.personal_details.phone && (
-                            <p><strong>Phone:</strong> {parsedData.personal_details.phone}</p>
+                            <p>
+                              <strong>Phone:</strong>{" "}
+                              {parsedData.personal_details.phone}
+                            </p>
                           )}
                           {parsedData.personal_details.location && (
-                            <p><strong>Location:</strong> {parsedData.personal_details.location}</p>
+                            <p>
+                              <strong>Location:</strong>{" "}
+                              {parsedData.personal_details.location}
+                            </p>
                           )}
                         </div>
                       </div>
-                      
+
                       <div>
                         <h4 className="font-medium mb-3">Summary</h4>
                         <div className="space-y-1 text-sm">
-                          <p><strong>Experience:</strong> {parsedData.experience.length} positions</p>
-                          <p><strong>Projects:</strong> {parsedData.projects.length} projects</p>
-                          <p><strong>Skills:</strong> {parsedData.skills.length} skills</p>
-                          <p><strong>Education:</strong> {parsedData.education.length} entries</p>
+                          <p>
+                            <strong>Experience:</strong>{" "}
+                            {parsedData.experience.length} positions
+                          </p>
+                          <p>
+                            <strong>Projects:</strong>{" "}
+                            {parsedData.projects.length} projects
+                          </p>
+                          <p>
+                            <strong>Skills:</strong> {parsedData.skills.length}{" "}
+                            skills
+                          </p>
+                          <p>
+                            <strong>Education:</strong>{" "}
+                            {parsedData.education.length} entries
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -400,16 +486,15 @@ const PortfolioBuilder = () => {
                       onChange={(e) => setUserPrompt(e.target.value)}
                       rows={4}
                     />
-                    
+
                     <div className="flex justify-center gap-4 mt-6">
                       <Button variant="outline" onClick={() => setStep(2)}>
                         Back
                       </Button>
-                      <Button
-                        onClick={generatePortfolio}
-                        disabled={loading}
-                      >
-                        {loading ? 'Generating Portfolio...' : 'Generate Portfolio'}
+                      <Button onClick={generatePortfolio} disabled={loading}>
+                        {loading
+                          ? "Generating Portfolio..."
+                          : "Generate Portfolio"}
                       </Button>
                     </div>
                   </CardContent>
@@ -440,25 +525,31 @@ const PortfolioBuilder = () => {
 
                     <div className="flex flex-wrap justify-center gap-4">
                       <Button
-                        onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}${generatedPortfolio.live_url}`, '_blank')}
+                        onClick={() =>
+                          window.open(
+                            `${process.env.REACT_APP_BACKEND_URL}${generatedPortfolio.live_url}`,
+                            "_blank",
+                          )
+                        }
                         className="flex items-center gap-2"
                       >
-                        <Eye className="w-4 h-4" />
-                        Preview Portfolio
+                        <Globe className="h-4 w-4" />
+                        View Live Portfolio
                       </Button>
-                      
+
                       <Button
                         variant="outline"
                         onClick={() => {
-                          navigator.clipboard.writeText(`${process.env.REACT_APP_BACKEND_URL}${generatedPortfolio.live_url}`);
-                          // You could add a toast notification here
+                          const fullUrl = `${window.location.origin}${generatedPortfolio.live_url}`;
+                          navigator.clipboard.writeText(fullUrl);
+                          alert("Portfolio link copied to clipboard!");
                         }}
                         className="flex items-center gap-2"
                       >
-                        <Share className="w-4 h-4" />
-                        Copy Link
+                        <Share className="h-4 w-4" />
+                        Share Portfolio
                       </Button>
-                      
+
                       <Button
                         variant="outline"
                         onClick={resetBuilder}
@@ -471,7 +562,9 @@ const PortfolioBuilder = () => {
 
                     <div className="text-left mt-6 p-4 bg-blue-50 rounded-lg">
                       <p className="text-sm text-blue-800">
-                        <strong>Share URL:</strong> {process.env.REACT_APP_BACKEND_URL}{generatedPortfolio.live_url}
+                        <strong>Share URL:</strong>{" "}
+                        {process.env.REACT_APP_BACKEND_URL}
+                        {generatedPortfolio.live_url}
                       </p>
                     </div>
                   </div>
@@ -481,7 +574,7 @@ const PortfolioBuilder = () => {
           </div>
         )}
 
-        {activeTab === 'my-portfolios' && (
+        {activeTab === "my-portfolios" && (
           <div className="max-w-4xl mx-auto">
             <Card>
               <CardHeader>
@@ -491,27 +584,40 @@ const PortfolioBuilder = () => {
                 {myPortfolios.length === 0 ? (
                   <div className="text-center py-8">
                     <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">You haven't created any portfolios yet</p>
-                    <Button onClick={() => setActiveTab('create')}>
+                    <p className="text-gray-600 mb-4">
+                      You haven't created any portfolios yet
+                    </p>
+                    <Button onClick={() => setActiveTab("create")}>
                       Create Your First Portfolio
                     </Button>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-4">
                     {myPortfolios.map((portfolio) => (
-                      <div key={portfolio.id} className="border border-gray-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-lg mb-2">{portfolio.title}</h3>
+                      <div
+                        key={portfolio.id}
+                        className="border border-gray-200 rounded-lg p-4"
+                      >
+                        <h3 className="font-semibold text-lg mb-2">
+                          {portfolio.title}
+                        </h3>
                         <p className="text-sm text-gray-600 mb-3">
-                          Created: {new Date(portfolio.created_at).toLocaleDateString()}
+                          Created:{" "}
+                          {new Date(portfolio.created_at).toLocaleDateString()}
                         </p>
                         <p className="text-sm text-gray-600 mb-4">
                           Views: {portfolio.views}
                         </p>
-                        
+
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}${portfolio.live_url}`, '_blank')}
+                            onClick={() =>
+                              window.open(
+                                `${process.env.REACT_APP_BACKEND_URL}${portfolio.live_url}`,
+                                "_blank",
+                              )
+                            }
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View
@@ -520,7 +626,9 @@ const PortfolioBuilder = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              navigator.clipboard.writeText(`${process.env.REACT_APP_BACKEND_URL}${portfolio.live_url}`);
+                              navigator.clipboard.writeText(
+                                `${process.env.REACT_APP_BACKEND_URL}${portfolio.live_url}`,
+                              );
                             }}
                           >
                             <Share className="w-4 h-4 mr-1" />
@@ -539,7 +647,9 @@ const PortfolioBuilder = () => {
         {error && (
           <Alert className="mt-4 max-w-4xl mx-auto border-red-200 bg-red-50">
             <AlertCircle className="w-4 h-4 text-red-600" />
-            <AlertDescription className="text-red-800">{error}</AlertDescription>
+            <AlertDescription className="text-red-800">
+              {error}
+            </AlertDescription>
           </Alert>
         )}
       </div>

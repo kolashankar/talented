@@ -82,25 +82,104 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []); // No dependencies to prevent infinite loop
 
+  // Email/Password Registration
+  const register = async (email, password, name) => {
+    try {
+      console.log("🔐 User registration attempt:", { email, name });
+      
+      const response = await axios.post(`${API}/user-auth/register`, {
+        email,
+        password,
+        name
+      });
+
+      console.log("✅ Registration response:", response.status, response.data);
+
+      const { access_token, user: userData } = response.data;
+      
+      localStorage.setItem("token", access_token);
+      setToken(access_token);
+      setUser(userData);
+      
+      console.log("✅ User registration successful");
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Registration error:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Registration failed"
+      };
+    }
+  };
+
+  // Email/Password Login
+  const loginWithEmail = async (email, password) => {
+    try {
+      console.log("🔐 User login attempt:", { email });
+      
+      const response = await axios.post(`${API}/user-auth/login`, {
+        email,
+        password
+      });
+
+      console.log("✅ Login response:", response.status, response.data);
+
+      const { access_token, user: userData } = response.data;
+      
+      localStorage.setItem("token", access_token);
+      setToken(access_token);
+      setUser(userData);
+      
+      console.log("✅ User login successful");
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Login failed"
+      };
+    }
+  };
+
   // Google Login for users
-  const login = () => {
+  const loginWithGoogle = () => {
     // This would typically open Google OAuth popup
     // For now, we'll simulate the OAuth flow
     window.location.href = `https://accounts.google.com/o/oauth2/auth?client_id=${process.env.REACT_APP_GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/callback')}&scope=openid%20email%20profile&response_type=code`;
   };
 
+  // Handle Google OAuth with ID token (for Google Sign-In button)
+  const handleGoogleLogin = async (googleResponse) => {
+    try {
+      console.log("🔐 Google login attempt:", googleResponse);
+      
+      const response = await axios.post(`${API}/auth/google/verify-token`, {
+        id_token: googleResponse.credential
+      });
+
+      console.log("✅ Google login response:", response.status, response.data);
+
+      const { access_token, user: userData } = response.data;
+      
+      localStorage.setItem("token", access_token);
+      setToken(access_token);
+      setUser(userData);
+      
+      console.log("✅ Google login successful");
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Google login error:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Google login failed"
+      };
+    }
+  };
+
   const handleGoogleCallback = async (code) => {
     try {
-      // This would exchange the code for tokens
-      // For demo purposes, we'll simulate successful login
-      const mockUserData = {
-        email: "user@example.com",
-        name: "Demo User",
-        google_id: "mock_google_id",
-        profile_picture: null
-      };
-
-      const response = await axios.post(`${API}/user-auth/google-login`, mockUserData);
+      // Exchange code for tokens via backend
+      const response = await axios.get(`${API}/auth/google/callback?code=${code}`);
       const { access_token, user: userData } = response.data;
       
       localStorage.setItem("token", access_token);
@@ -109,7 +188,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error("Google login error:", error);
+      console.error("Google callback error:", error);
       return { 
         success: false, 
         error: error.response?.data?.detail || "Login failed"
@@ -187,9 +266,12 @@ export const AuthProvider = ({ children }) => {
   const value = {
     // User auth
     user,
-    login,
-    logoutUser,
+    register,
+    loginWithEmail,
+    loginWithGoogle,
+    handleGoogleLogin,
     handleGoogleCallback,
+    logoutUser,
     
     // Admin auth
     adminUser,

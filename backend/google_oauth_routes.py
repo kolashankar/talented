@@ -71,14 +71,27 @@ async def verify_google_token(request: Dict[str, Any]):
         # Create or get user
         user = await google_oauth.create_or_get_user(user_info)
         
-        # Generate JWT token
-        jwt_token = google_oauth.generate_jwt_token(user)
+        # Generate JWT token using user_auth module for consistency
+        from user_auth import create_user_access_token
+        from datetime import timedelta
+        
+        access_token_expires = timedelta(days=7)
+        access_token = create_user_access_token(
+            data={"sub": user.email}, expires_delta=access_token_expires
+        )
         
         return {
-            "success": True,
-            "user": user.dict(),
-            "token": jwt_token,
-            "message": "Token verified successfully"
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": 7 * 24 * 60 * 60,  # seconds
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "profile_picture": user.profile_picture,
+                "email_verified": user.email_verified
+            },
+            "message": "Google login successful"
         }
         
     except HTTPException:

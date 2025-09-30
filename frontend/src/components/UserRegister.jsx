@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Header from './Header';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const UserRegister = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,8 @@ const UserRegister = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { register, loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -25,11 +28,9 @@ const UserRegister = () => {
     try {
       setLoading(true);
       setError('');
-      // TODO: Implement Google OAuth integration
-      alert('Google signup will be implemented soon!');
+      loginWithGoogle(); // This will redirect to Google OAuth
     } catch (err) {
       setError('Failed to signup with Google');
-    } finally {
       setLoading(false);
     }
   };
@@ -37,16 +38,32 @@ const UserRegister = () => {
   const handleEmailSignup = async (e) => {
     e.preventDefault();
     
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
       return;
     }
     
     try {
       setLoading(true);
       setError('');
-      // TODO: Implement email/password registration
-      alert('Email signup will be implemented soon!');
+      
+      const result = await register(formData.email, formData.password, formData.name);
+      
+      if (result.success) {
+        navigate('/'); // Redirect to home page after successful registration
+      } else {
+        setError(result.error || 'Registration failed');
+      }
     } catch (err) {
       setError('Failed to create account');
     } finally {

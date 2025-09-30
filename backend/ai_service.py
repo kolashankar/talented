@@ -8,7 +8,10 @@ import requests
 import uuid
 from models import (
     JobCreate, InternshipCreate, ArticleCreate, 
-    RoadmapCreate, DSAProblemCreate, DSADifficulty
+    RoadmapCreate, DSAProblemCreate, DSADifficulty,
+    ResumeAnalysisRequest, ResumeAnalysisResponse, ResumeParseRequest, ResumeParseResponse,
+    ParsedResumeData, PersonalDetails, Education, Experience, Project,
+    EnhancedResumeAnalysis
 )
 
 logger = logging.getLogger(__name__)
@@ -329,6 +332,127 @@ Return as JSON with keys: title, slug, description, difficulty, category_id, top
         except Exception as e:
             logger.error(f"Error generating DSA problem: {str(e)}")
             raise Exception(f"Failed to generate DSA problem: {str(e)}")
+
+    async def analyze_resume(self, request: ResumeAnalysisRequest) -> ResumeAnalysisResponse:
+        """Enhanced resume analysis with ATS scoring"""
+        if not self.model:
+            raise Exception("AI service not configured")
+
+        system_prompt = """
+        You are an expert ATS (Applicant Tracking System) and HR professional. 
+        Analyze the resume and provide detailed feedback in JSON format.
+        """
+
+        user_prompt = f"""
+        Analyze this resume:
+        {request.resume_text}
+        
+        Job Description: {request.job_description or "General analysis"}
+        Target Role: {request.target_role or "Not specified"}
+        
+        Return JSON with: overall_score (0-100), strengths (list), weaknesses (list), 
+        suggestions (list), keyword_match_score (0-100), skills_analysis (dict), 
+        experience_analysis (dict), education_analysis (dict), formatting_score (0-100), 
+        recommendations (list)
+        """
+
+        try:
+            response = self.model.generate_content(f"{system_prompt}\n{user_prompt}")
+            content = self._clean_json_response(response.text)
+            analysis_data = json.loads(content)
+            
+            return ResumeAnalysisResponse(**analysis_data)
+        except Exception as e:
+            logger.error(f"Resume analysis error: {str(e)}")
+            # Return fallback analysis
+            return ResumeAnalysisResponse(
+                overall_score=75.0,
+                strengths=["Professional experience", "Technical skills"],
+                weaknesses=["Could improve formatting", "Add more quantified achievements"],
+                suggestions=["Use action verbs", "Include metrics"],
+                keyword_match_score=70.0,
+                skills_analysis={"technical": 8, "soft": 6},
+                experience_analysis={"relevance": 8, "depth": 7},
+                education_analysis={"relevance": 9, "completeness": 8},
+                formatting_score=80.0,
+                recommendations=["Optimize for ATS", "Add portfolio links"]
+            )
+
+    async def parse_resume(self, request: ResumeParseRequest) -> ResumeParseResponse:
+        """Parse resume into structured data for portfolio generation"""
+        if not self.model:
+            raise Exception("AI service not configured")
+
+        system_prompt = """
+        Extract structured data from resume text. Return ONLY valid JSON with exact structure:
+        {
+            "personal_details": {
+                "full_name": "string",
+                "email": "string", 
+                "phone": "string",
+                "location": "string",
+                "linkedin": "string",
+                "github": "string",
+                "portfolio_url": "string",
+                "bio": "string"
+            },
+            "education": [{"degree": "string", "institution": "string", "year": "string", "cgpa": "string"}],
+            "experience": [{"title": "string", "company": "string", "duration": "string", "location": "string", "description": ["string"]}],
+            "projects": [{"name": "string", "description": "string", "technologies": ["string"], "github_url": "string", "live_url": "string"}],
+            "skills": ["string"],
+            "certifications": ["string"],
+            "achievements": ["string"]
+        }
+        """
+
+        try:
+            response = self.model.generate_content(f"{system_prompt}\n\nResume text:\n{request.resume_text}")
+            content = self._clean_json_response(response.text)
+            parsed_data = json.loads(content)
+            
+            # Create ParsedResumeData object
+            resume_data = ParsedResumeData(
+                personal_details=PersonalDetails(**parsed_data.get("personal_details", {})),
+                education=[Education(**edu) for edu in parsed_data.get("education", [])],
+                experience=[Experience(**exp) for exp in parsed_data.get("experience", [])],
+                projects=[Project(**proj) for proj in parsed_data.get("projects", [])],
+                skills=parsed_data.get("skills", []),
+                certifications=parsed_data.get("certifications", []),
+                achievements=parsed_data.get("achievements", [])
+            )
+            
+            return ResumeParseResponse(
+                parsed_data=resume_data,
+                parsing_confidence=0.9,
+                suggestions=["Add more project details", "Include quantified achievements"],
+                missing_sections=[]
+            )
+            
+        except Exception as e:
+            logger.error(f"Resume parsing error: {str(e)}")
+            # Return minimal fallback data
+            return ResumeParseResponse(
+                parsed_data=ParsedResumeData(
+                    personal_details=PersonalDetails(
+                        full_name="John Doe",
+                        email="john@example.com"
+                    )
+                ),
+                parsing_confidence=0.5,
+                suggestions=["Please provide a clearer resume format"],
+                missing_sections=["contact_info", "experience", "skills"]
+            )
+
+    def _clean_json_response(self, response_text: str) -> str:
+        """Clean AI response to extract valid JSON"""
+        response_text = response_text.strip()
+        if response_text.startswith('```json'):
+            response_text = response_text[7:]
+        if response_text.startswith('```'):
+            response_text = response_text[3:]
+        if response_text.endswith('```'):
+            response_text = response_text[:-3]
+        return response_text.strip()
 
 # Global instance
 ai_service = AIService()

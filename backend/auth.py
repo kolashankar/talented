@@ -38,7 +38,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -47,10 +47,10 @@ async def get_admin_by_username_or_email(username_or_email: str) -> Optional[Adm
     """Get admin user by username or email"""
     try:
         db = await get_database()
-        if not db:
+        if db is None:
             logger.error("Database connection not available")
             return None
-            
+
         admin_data = await db.admin_users.find_one({
             "$or": [
                 {"username": username_or_email},
@@ -80,11 +80,11 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     try:
         if not credentials or not credentials.credentials:
             raise credentials_exception
-            
+
         token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
@@ -96,18 +96,18 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
     except Exception as e:
         logger.error(f"Token validation error: {str(e)}")
         raise credentials_exception
-    
+
     try:
         admin = await get_admin_by_username_or_email(username_or_email=email)
         if admin is None:
             raise credentials_exception
-        
+
         if not admin.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Inactive user"
             )
-        
+
         return admin
     except HTTPException:
         raise
@@ -125,14 +125,14 @@ async def create_default_admin():
     """Create default admin user with specified credentials"""
     try:
         db = await get_database()
-        
+
         # Admin credentials from environment
         admin_email = os.getenv("ADMIN_EMAIL", "kolashankar113@gmail.com")
         admin_password = os.getenv("ADMIN_PASSWORD", "Shankar@113")
-        
+
         # Check if admin already exists
         existing_admin = await db.admin_users.find_one({"email": admin_email})
-        
+
         if not existing_admin:
             # Create the specified admin user
             admin_user = AdminUser(
@@ -142,7 +142,7 @@ async def create_default_admin():
                 is_active=True,
                 is_superuser=True
             )
-            
+
             admin_dict = admin_user.dict()
             await db.admin_users.insert_one(admin_dict)
             print(f"Admin created - email: {admin_email}")
@@ -154,7 +154,7 @@ async def create_default_admin():
                 {"$set": {"hashed_password": hashed_password, "is_active": True}}
             )
             print(f"Admin password updated - email: {admin_email}")
-            
+
     except Exception as e:
         print(f"Error creating/updating admin: {str(e)}")
         # Don't raise the error, just log it

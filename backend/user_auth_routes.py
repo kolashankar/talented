@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer
-from models import User, UserCreate
+from models import User, UserCreate, UserRegister, UserLogin
 from user_auth import (
     create_user_access_token, create_or_update_user,
-    get_current_active_user, get_user_by_email
+    get_current_active_user, get_user_by_email,
+    authenticate_user, create_user
 )
-from datetime import timedelta
+from datetime import timedelta, datetime
 import logging
 import os
 from dotenv import load_dotenv
@@ -17,6 +18,89 @@ logger = logging.getLogger(__name__)
 # Create router for user auth routes
 user_auth_router = APIRouter(prefix="/user-auth", tags=["user-authentication"])
 security = HTTPBearer()
+
+@user_auth_router.post("/register")
+async def register_user(user_data: UserRegister):
+    """Register a new user with email and password"""
+    try:
+        # Create new user
+        user = await create_user(user_data.email, user_data.password, user_data.name)
+        
+        # Create access token
+        access_token_expires = timedelta(days=7)
+        access_token = create_user_access_token(
+            data={"sub": user.email}, expires_delta=access_token_expires
+        )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": 7 * 24 * 60 * 60,  # seconds
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "profile_picture": user.profile_picture,
+                "email_verified": user.email_verified
+            },
+            "message": "Registration successful"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during registration: {str(e)}")
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+@user_auth_router.post("/login")
+async def login_user(user_data: UserLogin):
+    """Login user with email and password"""
+    try:
+        # Authenticate user
+        user = await authenticate_user(user_data.email, user_data.password)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is inactive"
+            )
+        
+        # Update last login
+        from database import get_database
+        db = await get_database()
+        await db.users.update_one(
+            {"email": user.email},
+            {"$set": {"last_login": datetime.utcnow()}}
+        )
+        
+        # Create access token
+        access_token_expires = timedelta(days=7)
+        access_token = create_user_access_token(
+            data={"sub": user.email}, expires_delta=access_token_expires
+        )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": 7 * 24 * 60 * 60,  # seconds
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "profile_picture": user.profile_picture,
+                "email_verified": user.email_verified
+            },
+            "message": "Login successful"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during login: {str(e)}")
+        raise HTTPException(status_code=500, detail="Login failed")
 
 @user_auth_router.post("/google-login")
 async def google_login(user_data: dict):

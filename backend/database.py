@@ -90,4 +90,12 @@ async def create_indexes():
         IndexModel([("is_active", ASCENDING)])
     ])
     
+    # Users collection indexes
+    await db.users.create_indexes([
+        IndexModel([("email", ASCENDING)], unique=True),
+        IndexModel([("google_id", ASCENDING)], unique=True, sparse=True),
+        IndexModel([("is_active", ASCENDING)]),
+        IndexModel([("created_at", DESCENDING)])
+    ])
+    
     print("Database indexes created successfully")

@@ -1,14 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from models import (
     PortfolioCreate, Portfolio, PortfolioUpdate, PortfolioTemplate,
-    PortfolioGenerateRequest, PortfolioGenerateResponse, User
+    PortfolioGenerateRequest, PortfolioGenerateResponse, User,
+    ParsedResumeData, PersonalDetails, Education, Experience, Project
 )
 from ai_service import ai_service
 from user_auth import get_current_active_user, get_current_user_optional
 from database import get_database
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 import json
 import uuid
@@ -24,10 +25,10 @@ async def get_portfolio_templates():
     try:
         db = await get_database()
         templates = []
-        
+
         # Get templates from database or return default ones
         db_templates = await db.portfolio_templates.find({"is_active": True}).to_list(length=None)
-        
+
         if db_templates:
             for template in db_templates:
                 templates.append(PortfolioTemplate(**template))
@@ -35,9 +36,9 @@ async def get_portfolio_templates():
             # Create default templates if none exist
             default_templates = await create_default_templates()
             templates = default_templates
-        
+
         return templates
-        
+
     except Exception as e:
         logger.error(f"Error fetching portfolio templates: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch templates")
@@ -54,14 +55,12 @@ async def generate_portfolio(
         template = await db.portfolio_templates.find_one({"id": request.template_id, "is_active": True})
         if not template:
             raise HTTPException(status_code=404, detail="Template not found")
-        
-        # Generate portfolio content using AI
-        generated_portfolio = await ai_service.generate_portfolio(request)
-        
+
+        # Generate portfolio content using enhanced portfolio builder
+        from portfolio_builder_service import portfolio_builder
+        generated_portfolio = await portfolio_builder.generate_portfolio(request)
+
         # Create portfolio record
-        share_token = str(uuid.uuid4())
-        live_url = f"/portfolio/view/{share_token}"
-        
         portfolio_data = PortfolioCreate(
             user_id=current_user.id,
             template_id=request.template_id,
@@ -69,22 +68,18 @@ async def generate_portfolio(
             resume_data=request.resume_data,
             custom_prompt=request.user_prompt
         )
-        
-        portfolio = Portfolio(**portfolio_data.dict(), live_url=live_url, share_token=share_token)
+
+        portfolio = Portfolio(**portfolio_data.dict(),
+                            live_url=generated_portfolio.live_url,
+                            share_token=generated_portfolio.share_token)
         portfolio_dict = portfolio.dict()
         await db.portfolios.insert_one(portfolio_dict)
-        
-        response = PortfolioGenerateResponse(
-            generated_content=generated_portfolio["content"],
-            html_content=generated_portfolio["html"],
-            css_content=generated_portfolio["css"],
-            live_url=live_url,
-            share_token=share_token
-        )
-        
+
+        response = generated_portfolio
+
         logger.info(f"Portfolio generated for user {current_user.email}")
         return response
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -97,13 +92,13 @@ async def get_user_portfolios(current_user: User = Depends(get_current_active_us
     try:
         db = await get_database()
         portfolios = await db.portfolios.find({"user_id": current_user.id}).sort("created_at", -1).to_list(length=None)
-        
+
         result = []
         for portfolio in portfolios:
             result.append(Portfolio(**portfolio))
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error fetching user portfolios: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch portfolios")
@@ -117,12 +112,12 @@ async def get_portfolio(
     try:
         db = await get_database()
         portfolio = await db.portfolios.find_one({"id": portfolio_id, "user_id": current_user.id})
-        
+
         if not portfolio:
             raise HTTPException(status_code=404, detail="Portfolio not found")
-        
+
         return Portfolio(**portfolio)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -138,25 +133,25 @@ async def update_portfolio(
     """Update a portfolio"""
     try:
         db = await get_database()
-        
+
         # Check if portfolio exists and belongs to user
         existing_portfolio = await db.portfolios.find_one({"id": portfolio_id, "user_id": current_user.id})
         if not existing_portfolio:
             raise HTTPException(status_code=404, detail="Portfolio not found")
-        
+
         # Update portfolio
         update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
         update_dict["updated_at"] = datetime.utcnow()
-        
+
         await db.portfolios.update_one(
-            {"id": portfolio_id}, 
+            {"id": portfolio_id},
             {"$set": update_dict}
         )
-        
+
         # Return updated portfolio
         updated_portfolio = await db.portfolios.find_one({"id": portfolio_id})
         return Portfolio(**updated_portfolio)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -171,15 +166,15 @@ async def delete_portfolio(
     """Delete a portfolio"""
     try:
         db = await get_database()
-        
+
         # Check if portfolio exists and belongs to user
         result = await db.portfolios.delete_one({"id": portfolio_id, "user_id": current_user.id})
-        
+
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Portfolio not found")
-        
+
         return {"message": "Portfolio deleted successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -192,21 +187,21 @@ async def view_portfolio(share_token: str, request: Request):
     try:
         db = await get_database()
         portfolio = await db.portfolios.find_one({"share_token": share_token, "is_public": True})
-        
+
         if not portfolio:
             return HTMLResponse(content="<h1>Portfolio not found</h1>", status_code=404)
-        
+
         # Increment view count
         await db.portfolios.update_one(
             {"share_token": share_token},
             {"$inc": {"views": 1}}
         )
-        
+
         # Generate HTML content for the portfolio
         html_content = await ai_service.render_portfolio_html(Portfolio(**portfolio))
-        
+
         return HTMLResponse(content=html_content)
-        
+
     except Exception as e:
         logger.error(f"Error viewing portfolio: {str(e)}")
         return HTMLResponse(content="<h1>Error loading portfolio</h1>", status_code=500)
@@ -214,7 +209,7 @@ async def view_portfolio(share_token: str, request: Request):
 async def create_default_templates() -> List[PortfolioTemplate]:
     """Create default portfolio templates"""
     db = await get_database()
-    
+
     templates = [
         {
             "id": str(uuid.uuid4()),
@@ -282,12 +277,12 @@ async def create_default_templates() -> List[PortfolioTemplate]:
             "is_active": True
         }
     ]
-    
+
     # Insert templates into database
     for template_data in templates:
         existing = await db.portfolio_templates.find_one({"name": template_data["name"]})
         if not existing:
             await db.portfolio_templates.insert_one(template_data)
-    
+
     # Return template objects
     return [PortfolioTemplate(**template) for template in templates]

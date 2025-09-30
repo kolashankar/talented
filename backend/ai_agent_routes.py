@@ -1,8 +1,25 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import Dict, Any, Optional
-from ai_agent_service import ai_agent
-from auth import get_current_active_admin, AdminUser
 import logging
+from typing import Dict, Any
+from fastapi import APIRouter, Depends, HTTPException
+
+from models import (
+    AIContentRequest, AIContentResponse,
+    JobCreate, InternshipCreate, ArticleCreate,
+    RoadmapCreate, DSAProblemCreate,
+    AIFormFillerRequest, AIFormFillerResponse,
+    ResumeAnalysisRequest, ResumeAnalysisResponse, 
+    ResumeParseRequest, ResumeParseResponse,
+    PortfolioGenerateRequest, PortfolioGenerateResponse, 
+    PortfolioTemplate,
+    AdminUser,  # ✅ added
+    User        # ✅ added
+)
+
+from ai_agent_service import ai_agent
+from ai_service import ai_service
+from auth import get_current_active_admin
+from user_auth import get_current_active_user
+
 
 logger = logging.getLogger(__name__)
 
@@ -235,3 +252,46 @@ async def auto_fill_form(
     except Exception as e:
         logger.error(f"Error auto-filling form: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Enhanced AI Routes
+@ai_agent_router.post("/form-filler/fill", response_model=AIFormFillerResponse)
+async def fill_form_with_ai(
+    request: AIFormFillerRequest,
+    current_admin: AdminUser = Depends(get_current_active_admin)
+):
+    """AI-powered form filling for jobs, internships, articles, roadmaps, and DSA problems"""
+    try:
+        filled_form = await ai_agent.fill_form(request)
+        logger.info(f"Form filled by AI for admin {current_admin.email}: {request.content_type}")
+        return filled_form
+    except Exception as e:
+        logger.error(f"AI form filling error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Form filling failed: {str(e)}")
+
+@ai_agent_router.post("/resume/analyze", response_model=ResumeAnalysisResponse)
+async def analyze_resume_enhanced(
+    request: ResumeAnalysisRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Enhanced resume analysis with ATS scoring and detailed feedback"""
+    try:
+        analysis = await ai_service.analyze_resume(request)
+        logger.info(f"Enhanced resume analysis completed for user {current_user.email}")
+        return analysis
+    except Exception as e:
+        logger.error(f"Enhanced resume analysis error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+@ai_agent_router.post("/resume/parse", response_model=ResumeParseResponse)
+async def parse_resume_enhanced(
+    request: ResumeParseRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Parse resume into structured data for portfolio generation"""
+    try:
+        parsed_data = await ai_service.parse_resume(request)
+        logger.info(f"Resume parsing completed for user {current_user.email}")
+        return parsed_data
+    except Exception as e:
+        logger.error(f"Resume parsing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Parsing failed: {str(e)}")

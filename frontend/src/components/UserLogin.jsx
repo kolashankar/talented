@@ -2,34 +2,47 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Header from './Header';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const UserLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { loginWithEmail, loginWithGoogle, handleGoogleLogin } = useAuth();
+  const navigate = useNavigate();
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLoginClick = async () => {
     try {
       setLoading(true);
       setError('');
-      // TODO: Implement Google OAuth integration
-      alert('Google login will be implemented soon!');
+      loginWithGoogle(); // This will redirect to Google OAuth
     } catch (err) {
       setError('Failed to login with Google');
-    } finally {
       setLoading(false);
     }
   };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
-      // TODO: Implement email/password login
-      alert('Email login will be implemented soon!');
+      
+      const result = await loginWithEmail(email, password);
+      
+      if (result.success) {
+        navigate('/'); // Redirect to home page after successful login
+      } else {
+        setError(result.error || 'Login failed');
+      }
     } catch (err) {
       setError('Failed to login');
     } finally {
@@ -142,7 +155,7 @@ const UserLogin = () => {
 
               <div className="mt-6">
                 <Button
-                  onClick={handleGoogleLogin}
+                  onClick={handleGoogleLoginClick}
                   variant="outline"
                   className="w-full"
                   disabled={loading}

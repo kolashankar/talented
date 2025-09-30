@@ -22,6 +22,7 @@ from user_interaction_routes import interaction_router
 from dsa_routes import dsa_router
 from company_routes import company_router
 from footer_routes import footer_router
+from simple_portfolio_routes import enhanced_portfolio_router
 
 # Import auth functions
 from auth import create_default_admin
@@ -64,6 +65,7 @@ api_router.include_router(interaction_router)  # /api/interactions/*
 api_router.include_router(dsa_router)  # /api/dsa/*
 api_router.include_router(company_router)  # /api/companies/*
 api_router.include_router(footer_router)  # /api/pages/*
+api_router.include_router(enhanced_portfolio_router)  # /api/enhanced-portfolio/*
 
 # Include the main router in the app
 app.include_router(api_router)
